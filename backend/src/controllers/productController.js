@@ -11,13 +11,37 @@ const getCategories = async (req, res) => {
 };
 
 const createCategory = async (req, res) => {
-  const { name, description, slug } = req.body;
+  const { name, description, slug, image } = req.body;
   try {
     const result = await db.query(
-      "INSERT INTO categories (name, description, slug) VALUES ($1, $2, $3) RETURNING *",
-      [name, description, slug],
+      "INSERT INTO categories (name, description, slug, image) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, description, slug, image],
     );
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const updateCategory = async (req, res) => {
+  const { id } = req.params;
+  const { name, description, slug, image } = req.body;
+  try {
+    const result = await db.query(
+      "UPDATE categories SET name=$1, description=$2, slug=$3, image=$4 WHERE id=$5 RETURNING *",
+      [name, description, slug, image, id],
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const deleteCategory = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query("DELETE FROM categories WHERE id=$1", [id]);
+    res.json({ message: "Category deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -38,26 +62,36 @@ const getProducts = async (req, res) => {
 const createProduct = async (req, res) => {
   const {
     name,
+    slug,
     description,
-    price,
+    base_price,
+    discount_type,
+    discount_value,
+    sale_price,
     category_id,
     images,
     sizes,
     colors,
     stock_quantity,
+    low_stock_threshold,
   } = req.body;
   try {
     const result = await db.query(
-      "INSERT INTO products (name, description, price, category_id, images, sizes, colors, stock_quantity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+      "INSERT INTO products (name, slug, description, base_price, discount_type, discount_value, sale_price, category_id, images, sizes, colors, stock_quantity, low_stock_threshold) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *",
       [
         name,
+        slug,
         description,
-        price,
+        base_price,
+        discount_type,
+        discount_value,
+        sale_price,
         category_id,
         images,
         sizes,
         colors,
         stock_quantity,
+        low_stock_threshold,
       ],
     );
     res.status(201).json(result.rows[0]);
@@ -70,27 +104,37 @@ const updateProduct = async (req, res) => {
   const { id } = req.params;
   const {
     name,
+    slug,
     description,
-    price,
+    base_price,
+    discount_type,
+    discount_value,
+    sale_price,
     category_id,
     images,
     sizes,
     colors,
     stock_quantity,
+    low_stock_threshold,
     is_active,
   } = req.body;
   try {
     const result = await db.query(
-      "UPDATE products SET name=$1, description=$2, price=$3, category_id=$4, images=$5, sizes=$6, colors=$7, stock_quantity=$8, is_active=$9 WHERE id=$10 RETURNING *",
+      "UPDATE products SET name=$1, slug=$2, description=$3, base_price=$4, discount_type=$5, discount_value=$6, sale_price=$7, category_id=$8, images=$9, sizes=$10, colors=$11, stock_quantity=$12, low_stock_threshold=$13, is_active=$14 WHERE id=$15 RETURNING *",
       [
         name,
+        slug,
         description,
-        price,
+        base_price,
+        discount_type,
+        discount_value,
+        sale_price,
         category_id,
         images,
         sizes,
         colors,
         stock_quantity,
+        low_stock_threshold,
         is_active,
         id,
       ],
@@ -101,10 +145,23 @@ const updateProduct = async (req, res) => {
   }
 };
 
+const deleteProduct = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query("DELETE FROM products WHERE id=$1", [id]);
+    res.json({ message: "Product deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getCategories,
   createCategory,
+  updateCategory,
+  deleteCategory,
   getProducts,
   createProduct,
   updateProduct,
+  deleteProduct,
 };
