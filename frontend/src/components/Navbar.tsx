@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search, ShoppingBag, Heart, Menu, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { User, LogOut, LayoutDashboard } from "lucide-react";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { totalItems, wishlist } = useCart();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const location = useLocation();
   const isHome = location.pathname === "/";
 
@@ -87,6 +90,28 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <Link to="/admin" className={`p-2 transition-colors ${isTransparent ? "text-accent-foreground/80 hover:text-accent-foreground" : "hover:text-accent"}`} title="Dashboard">
+                    <LayoutDashboard size={18} strokeWidth={1.5} />
+                  </Link>
+                )}
+                <button
+                  onClick={logout}
+                  className={`p-2 transition-colors ${isTransparent ? "text-accent-foreground/80 hover:text-accent-foreground" : "hover:text-accent"}`}
+                  title="Logout"
+                >
+                  <LogOut size={18} strokeWidth={1.5} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className={`p-2 transition-colors ${isTransparent ? "text-accent-foreground/80 hover:text-accent-foreground" : "hover:text-accent"}`} title="Login">
+                <User size={18} strokeWidth={1.5} />
+              </Link>
+            )}
+
             <button
               className={`lg:hidden p-2 transition-colors ${isTransparent ? "text-accent-foreground/80" : "hover:text-accent"}`}
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -116,6 +141,24 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              <div className="pt-4 border-t border-border flex flex-col gap-6">
+                {isAuthenticated ? (
+                  <>
+                    {isAdmin && (
+                      <Link to="/admin" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
+                        <LayoutDashboard size={16} /> Admin Dashboard
+                      </Link>
+                    )}
+                    <button onClick={logout} className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3 text-left">
+                      <LogOut size={16} /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/login" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
+                    <User size={16} /> Login
+                  </Link>
+                )}
+              </div>
             </nav>
           </motion.div>
         )}
