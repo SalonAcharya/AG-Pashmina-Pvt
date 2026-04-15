@@ -30,15 +30,21 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
+    slug VARCHAR(200) UNIQUE,
     description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
+    base_price DECIMAL(10, 2) NOT NULL,
+    discount_type VARCHAR(20) DEFAULT 'none',
+    -- 'none', 'fixed', 'percentage'
+    discount_value DECIMAL(10, 2) DEFAULT 0,
+    sale_price DECIMAL(10, 2) NOT NULL,
     category_id INTEGER REFERENCES categories(id) ON DELETE
     SET NULL,
         images TEXT [],
-        -- Array of image URLs
+        -- Array of image URLs/paths
         sizes TEXT [],
         colors TEXT [],
         stock_quantity INTEGER DEFAULT 0,
+        low_stock_threshold INTEGER DEFAULT 5,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -85,5 +91,3 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- Sample Data (Optional)
--- INSERT INTO categories (name, slug) VALUES ('Pashmina Shawls', 'pashmina-shawls');

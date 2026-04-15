@@ -1,16 +1,24 @@
 import { Link } from "react-router-dom";
 import { Heart, Star } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import type { Product } from "@/data/products";
 import { motion } from "framer-motion";
 
-interface ProductCardProps {
-  product: Product;
-}
+const API_BASE_URL = "http://localhost:5000";
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<{ product: any }> = ({ product }) => {
   const { addItem, wishlist, toggleWishlist } = useCart();
   const isWished = wishlist.includes(product.id);
+
+  const getImgUrl = () => {
+    const rawImg = product.images?.[0] || product.image;
+    if (!rawImg) return "";
+    return rawImg.startsWith('http') ? rawImg : `${API_BASE_URL}${rawImg}`;
+  };
+
+  const name = product.name;
+  const price = product.sale_price || product.price;
+  const category = product.category_name || product.category;
+  const desc = product.shortDescription || product.description;
 
   return (
     <motion.div
@@ -22,10 +30,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     >
       <div className="relative overflow-hidden rounded-lg bg-card shadow-soft hover:shadow-lift transition-shadow duration-300">
         <Link to={`/product/${product.id}`}>
-          <div className="aspect-[4/5] overflow-hidden">
+          <div className="aspect-[4/5] overflow-hidden bg-muted">
             <img
-              src={product.image}
-              alt={product.name}
+              src={getImgUrl()}
+              alt={name}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               loading="lazy"
             />
@@ -35,7 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Wishlist */}
         <button
           onClick={() => toggleWishlist(product.id)}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-background"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-background z-10"
         >
           <Heart
             size={14}
@@ -45,7 +53,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </button>
 
         {/* Quick Add */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400">
+        <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 z-10">
           <button
             onClick={() => addItem(product)}
             className="w-full py-2.5 bg-accent text-accent-foreground font-body text-[10px] tracking-[0.15em] uppercase font-semibold rounded-md hover:bg-accent/90 transition-colors"
@@ -57,23 +65,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
       <div className="mt-3 space-y-1 px-0.5">
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-accent">
-          {product.category}
+          {category}
         </p>
         <Link to={`/product/${product.id}`}>
           <h3 className="font-display text-base font-medium text-foreground hover:text-accent transition-colors leading-tight line-clamp-1">
-            {product.name}
+            {name}
           </h3>
         </Link>
         <p className="font-body text-[11px] text-muted-foreground line-clamp-1">
-          {product.shortDescription}
+          {desc}
         </p>
         <div className="flex items-center justify-between pt-0.5">
           <span className="font-body text-sm font-semibold text-foreground">
-            ${product.price}
+            Rs. {price}
           </span>
           <div className="flex items-center gap-1">
             <Star size={11} className="fill-accent text-accent" />
-            <span className="font-body text-[11px] text-muted-foreground">{product.rating}</span>
+            <span className="font-body text-[11px] text-muted-foreground">{product.rating || "5.0"}</span>
           </div>
         </div>
       </div>
