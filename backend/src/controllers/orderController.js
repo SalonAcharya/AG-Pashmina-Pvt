@@ -72,4 +72,14 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, getOrders, updateOrderStatus };
+const deleteOrder = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query("DELETE FROM orders WHERE id=$1", [id]);
+    res.json({ message: "Order deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { createOrder, getOrders, updateOrderStatus, deleteOrder };

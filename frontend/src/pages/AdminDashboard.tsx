@@ -4,180 +4,185 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Plus, ShoppingBag, List, Package } from "lucide-react";
-import { CategoryForm, ProductForm } from "@/components/AdminForms";
+import { Loader2, Package, List, ShoppingBag, MessageSquare, BookOpen, Edit2, Trash2, X } from "lucide-react";
+import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
+
+const API_BASE_URL = "http://localhost:5000";
 
 const AdminDashboard = () => {
-  const { user, token, isAdmin } = useAuth();
-  const [orders, setOrders] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
+  const { token, isAdmin } = useAuth();
+  const [data, setData] = useState({ orders: [], categories: [], products: [], messages: [], blogs: [] });
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchData();
-    }
-  }, [isAdmin]);
+  const [editing, setEditing] = useState<{ type: string, item: any } | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [ordersRes, catsRes, productsRes] = await Promise.all([
-        fetch("http://localhost:5000/api/orders", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("http://localhost:5000/api/categories"),
-        fetch("http://localhost:5000/api/products"),
+      const headers = { Authorization: `Bearer ${token}` };
+      const [o, c, p, m, b] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/orders`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/categories`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/products`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/contact-messages`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/blog`).then(r => r.json()),
       ]);
-      
-      const ordersData = await ordersRes.json();
-      const catsData = await catsRes.json();
-      const productsData = await productsRes.json();
-      
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
-      setCategories(Array.isArray(catsData) ? catsData : []);
-      setProducts(Array.isArray(productsData) ? productsData : []);
-    } catch (error) {
-      toast.error("Failed to fetch dashboard data");
-    } finally {
-      setIsLoading(false);
-    }
+      setData({ orders: o, categories: c, products: p, messages: m, blogs: b });
+    } catch (err) { toast.error("Error loading data"); }
+    finally { setIsLoading(false); }
   };
 
-  if (!isAdmin) {
-    return <div className="min-h-screen flex items-center justify-center">Access Denied</div>;
-  }
+  useEffect(() => { if (isAdmin) fetchData(); }, [isAdmin]);
+
+  const handleDelete = async (type: string, id: number) => {
+    if (!confirm(`Delete this ${type}?`)) return;
+    try {
+      const endpoint = type === 'message' ? 'contact-messages' : type === 'blog' ? 'blog' : type + 's';
+      const res = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) { fetchData(); toast.success("Deleted!"); }
+    } catch (err) { toast.error("Delete failed"); }
+  };
+
+  const getImg = (url: string) => url?.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+
+  if (!isAdmin) return <div className="min-h-screen flex items-center justify-center">Access Denied</div>;
 
   return (
-    <div className="min-h-screen bg-background pt-24 px-4 sm:px-6 pb-12">
+    <div className="min-h-screen bg-background pt-24 pb-12 px-4 sm:px-12 relative">
+      {editing && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-2xl bg-card border-accent/20">
+            <CardContent className="p-6">
+              {editing.type === 'product' && <ProductForm categories={data.categories} editData={editing.item} onAdd={fetchData} onCancel={() => setEditing(null)} />}
+              {editing.type === 'category' && <CategoryForm editData={editing.item} onAdd={fetchData} onCancel={() => setEditing(null)} />}
+              {editing.type === 'blog' && <BlogForm editData={editing.item} onAdd={fetchData} onCancel={() => setEditing(null)} />}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-          <div>
-            <h1 className="font-display text-4xl text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Manage your shop, products, and orders</p>
-          </div>
-          <Button variant="luxury" onClick={fetchData}>Refresh Data</Button>
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="font-display text-4xl">Admin Dashboard</h1>
+          <Button variant="luxury" onClick={fetchData}>Refresh</Button>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin h-10 w-10 text-accent" />
-          </div>
+          <div className="flex justify-center py-20"><Loader2 className="animate-spin h-10 w-10 text-accent" /></div>
         ) : (
-          <Tabs defaultValue="orders" className="space-y-6">
-            <TabsList className="bg-card border border-border w-full justify-start overflow-x-auto">
-              <TabsTrigger value="orders" className="flex items-center gap-2">
-                <ShoppingBag size={16} /> Live Orders
-              </TabsTrigger>
-              <TabsTrigger value="categories" className="flex items-center gap-2">
-                <List size={16} /> Categories
-              </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2">
-                <Package size={16} /> Products
-              </TabsTrigger>
+          <Tabs defaultValue="products" className="space-y-6">
+            <TabsList className="bg-card border w-full justify-start p-1 gap-1 overflow-x-auto">
+              <TabsTrigger value="products" className="gap-2"><Package size={14} /> Products</TabsTrigger>
+              <TabsTrigger value="categories" className="gap-2"><List size={14} /> Categories</TabsTrigger>
+              <TabsTrigger value="orders" className="gap-2"><ShoppingBag size={14} /> Orders</TabsTrigger>
+              <TabsTrigger value="blogs" className="gap-2"><BookOpen size={14} /> Blogs</TabsTrigger>
+              <TabsTrigger value="messages" className="gap-2"><MessageSquare size={14} /> Messages</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="orders">
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle>Recent Orders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border text-left">
-                          <th className="py-3 px-4 font-medium min-w-[100px]">Order ID</th>
-                          <th className="py-3 px-4 font-medium">Customer</th>
-                          <th className="py-3 px-4 font-medium">Total</th>
-                          <th className="py-3 px-4 font-medium">Status</th>
-                          <th className="py-3 px-4 font-medium">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {orders.map((order: any) => (
-                          <tr key={order.id} className="border-b border-border/50 hover:bg-muted/30">
-                            <td className="py-3 px-4">#{order.id}</td>
-                            <td className="py-3 px-4">{order.user_name}</td>
-                            <td className="py-3 px-4">${order.total_amount}</td>
-                            <td className="py-3 px-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                order.status === 'delivered' ? 'bg-green-100 text-green-700' : 
-                                order.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                              }`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="products">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <Card className="lg:col-span-1 border-accent/20"><CardHeader><CardTitle>Add Product</CardTitle></CardHeader>
+                  <CardContent><ProductForm categories={data.categories} onAdd={fetchData} /></CardContent>
+                </Card>
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
+                  {data.products.map((p: any) => (
+                    <Card key={p.id} className="overflow-hidden group h-fit">
+                      <div className="aspect-square relative bg-muted">
+                        {p.images?.[0] ? <img src={getImg(p.images[0])} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px]">No image</div>}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button size="icon" variant="secondary" className="h-7 w-7" onClick={() => setEditing({type:'product', item:p})}><Edit2 size={12} /></Button>
+                          <Button size="icon" variant="destructive" className="h-7 w-7" onClick={() => handleDelete('product', p.id)}><Trash2 size={12} /></Button>
+                        </div>
+                      </div>
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start mb-1 text-sm font-bold"><span>{p.name}</span><span className="text-accent">Rs.{p.sale_price}</span></div>
+                        <p className="text-[10px] text-muted-foreground uppercase">{p.category_name}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="blogs">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <Card className="lg:col-span-1 border-accent/20"><CardHeader><CardTitle>Write Article</CardTitle></CardHeader>
+                  <CardContent><BlogForm onAdd={fetchData} /></CardContent>
+                </Card>
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                  {data.blogs.map((b: any) => (
+                    <Card key={b.id} className="group overflow-hidden">
+                      <div className="aspect-video relative bg-muted">
+                        {b.featured_image ? <img src={getImg(b.featured_image)} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px]">No image</div>}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button size="icon" variant="secondary" className="h-7 w-7" onClick={() => setEditing({type:'blog', item:b})}><Edit2 size={12} /></Button>
+                          <Button size="icon" variant="destructive" className="h-7 w-7" onClick={() => handleDelete('blog', b.id)}><Trash2 size={12} /></Button>
+                        </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-display text-md mb-2">{b.title}</h3>
+                        <div className="flex gap-2 text-[10px] text-muted-foreground italic mb-1">
+                          <span>{b.origin}</span><span>|</span><span>{b.fiber}</span>
+                        </div>
+                        <p className="text-xs line-clamp-2 text-muted-foreground">{b.excerpt}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="categories">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="md:col-span-1 bg-card border-border">
-                  <CardHeader>
-                    <CardTitle>Add Category</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CategoryForm onAdd={fetchData} />
-                  </CardContent>
+                <Card className="md:col-span-1 border-accent/20"><CardHeader><CardTitle>Add Category</CardTitle></CardHeader>
+                  <CardContent><CategoryForm onAdd={fetchData} /></CardContent>
                 </Card>
-                <Card className="md:col-span-2 bg-card border-border">
-                  <CardHeader>
-                    <CardTitle>Existing Categories</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {categories.map((cat: any) => (
-                        <li key={cat.id} className="flex justify-between items-center p-3 rounded-lg border border-border bg-muted/20">
-                          <span className="font-medium">{cat.name}</span>
-                          <span className="text-[10px] text-muted-foreground uppercase">{cat.slug}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                  {data.categories.map((c: any) => (
+                    <Card key={c.id} className="group overflow-hidden relative border-accent/10">
+                      <div className="h-32 bg-muted relative">
+                        {c.image ? <img src={getImg(c.image)} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px]">No image</div>}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <Button size="icon" variant="secondary" className="h-7 w-7" onClick={() => setEditing({type:'category', item:c})}><Edit2 size={12} /></Button>
+                          <Button size="icon" variant="destructive" className="h-7 w-7" onClick={() => handleDelete('category', c.id)}><Trash2 size={12} /></Button>
+                        </div>
+                      </div>
+                      <CardContent className="p-3 text-center">
+                        <p className="font-bold">{c.name}</p>
+                        <p className="text-[10px] uppercase text-muted-foreground">{c.slug}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="products">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <Card className="lg:col-span-1 bg-card border-border">
-                  <CardHeader>
-                    <CardTitle>New Product</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ProductForm categories={categories} onAdd={fetchData} />
-                  </CardContent>
-                </Card>
-                <div className="lg:col-span-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {products.map((product: any) => (
-                      <Card key={product.id} className="overflow-hidden bg-card border-border hover:shadow-lg transition-shadow">
-                        <div className="aspect-square relative overflow-hidden bg-muted">
-                          {product.images && product.images[0] ? (
-                            <img src={product.images[0]} alt={product.name} className="object-cover w-full h-full" />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">No image</div>
-                          )}
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-display text-lg mb-1 truncate">{product.name}</h3>
-                          <p className="text-[10px] text-muted-foreground mb-4 uppercase tracking-wider">{product.category_name}</p>
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold">${product.price}</span>
-                            <span className="text-xs text-muted-foreground">Qty: {product.stock_quantity}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+            <TabsContent value="orders">
+              <Card className="border-accent/10"><CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b text-left"><th className="p-4">ID</th><th className="p-4">Customer</th><th className="p-4 text-right">Total</th><th className="p-4 text-center">Status</th><th className="p-4 text-right">Action</th></tr></thead>
+                  <tbody>{data.orders.map((o: any) => (
+                    <tr key={o.id} className="border-b hover:bg-muted/30">
+                      <td className="p-4 font-mono text-xs">#{String(o.id).padStart(5, '0')}</td>
+                      <td className="p-4"><div><p className="font-bold">{o.user_name}</p><p className="text-[10px]">{new Date(o.created_at).toLocaleDateString()}</p></div></td>
+                      <td className="p-4 text-right font-bold">Rs.{o.total_amount}</td>
+                      <td className="p-4 text-center"><span className="text-[10px] uppercase font-bold border rounded px-2 py-1">{o.status}</span></td>
+                      <td className="p-4 text-right"><Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete('order', o.id)}><Trash2 size={12} /></Button></td>
+                    </tr>
+                  ))}</tbody></table></CardContent></Card>
+            </TabsContent>
+
+            <TabsContent value="messages">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {data.messages.map((m: any) => (
+                  <Card key={m.id} className="relative group border-accent/10">
+                    <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive opacity-0 group-hover:opacity-100" onClick={() => handleDelete('message', m.id)}><Trash2 size={12} /></Button>
+                    <CardHeader><CardTitle className="text-md">{m.subject}</CardTitle></CardHeader>
+                    <CardContent><p className="text-xs italic mb-4">"{m.message}"</p><div className="text-[10px] uppercase font-bold text-accent">{m.name} | {m.email}</div></CardContent>
+                  </Card>
+                ))}
               </div>
             </TabsContent>
           </Tabs>
