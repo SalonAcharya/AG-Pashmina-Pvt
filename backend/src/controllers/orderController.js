@@ -1,7 +1,15 @@
 const db = require("../config/db");
 
 const createOrder = async (req, res) => {
-  const { total_amount, items, shipping_address } = req.body;
+  const {
+    total_amount,
+    items,
+    shipping_address,
+    vat_amount,
+    delivery_fee,
+    payment_method,
+    payment_proof,
+  } = req.body;
   const user_id = req.user.id;
 
   const client = await db.pool.connect();
@@ -9,8 +17,18 @@ const createOrder = async (req, res) => {
     await client.query("BEGIN");
 
     const orderResult = await client.query(
-      "INSERT INTO orders (user_id, total_amount, shipping_address) VALUES ($1, $2, $3) RETURNING id",
-      [user_id, total_amount, shipping_address],
+      `INSERT INTO orders (user_id, total_amount, shipping_address, vat_amount, delivery_fee, payment_method, payment_status, payment_proof) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+      [
+        user_id,
+        total_amount,
+        shipping_address,
+        vat_amount || 0,
+        delivery_fee || 0,
+        payment_method || "cod",
+        payment_method === "cod" ? "unpaid" : "pending_verification",
+        payment_proof || null,
+      ],
     );
     const orderId = orderResult.rows[0].id;
 
@@ -60,12 +78,18 @@ const getOrders = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, payment_status } = req.body;
   try {
-    const result = await db.query(
-      "UPDATE orders SET status = $1 WHERE id = $2 RETURNING *",
-      [status, id],
-    );
+    let query = "UPDATE orders SET status = $1 WHERE id = $2 RETURNING *";
+    let params = [status, id];
+
+    if (payment_status) {
+      query =
+        "UPDATE orders SET status = $1, payment_status = $2 WHERE id = $3 RETURNING *";
+      params = [status, payment_status, id];
+    }
+
+    const result = await db.query(query, params);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -326,8 +326,14 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
                 <button type="button" onClick={() => setForm({...form, images: form.images.filter((_, i) => i !== idx)})} className="absolute top-0 right-0 bg-destructive text-white p-0.5 opacity-0 group-hover:opacity-100"><X size={10} /></button>
               </div>
             ))}
-            <label className="w-16 h-16 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:border-accent">
-              <Plus size={16} /><input type="file" multiple className="hidden" onChange={handleFileChange} />
+            {imageFiles.map((file, idx) => (
+              <div key={`new-${idx}`} className="relative w-16 h-16 border-2 border-accent/50 rounded overflow-hidden group">
+                <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
+                <button type="button" onClick={() => setImageFiles(files => files.filter((_, i) => i !== idx))} className="absolute top-0 right-0 bg-destructive text-white p-0.5 opacity-0 group-hover:opacity-100"><X size={10} /></button>
+              </div>
+            ))}
+            <label className="w-16 h-16 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:border-accent text-muted-foreground hover:text-accent transition-colors">
+              <Plus size={16} /><input type="file" multiple className="hidden" onChange={handleFileChange} accept="image/*" />
             </label>
           </div>
         </div>

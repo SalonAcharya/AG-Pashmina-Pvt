@@ -13,6 +13,7 @@ router.post("/auth/login", authController.login);
 
 // Public Product/Category Routes
 router.get("/products", productController.getProducts);
+router.get("/products/:id", productController.getProductById);
 router.get("/categories", productController.getCategories);
 
 // Upload Routes
@@ -31,6 +32,10 @@ router.delete(
   isAdmin,
   extraController.deleteBlogPost,
 );
+
+// Settings Routes
+router.get("/settings", extraController.getSettings);
+router.post("/settings", verifyToken, isAdmin, extraController.updateSettings);
 
 // Contact Routes
 router.post("/contact", extraController.createContactMessage);

@@ -12,6 +12,38 @@ const getBlogPosts = async (req, res) => {
   }
 };
 
+// Settings Controllers
+const getSettings = async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM settings");
+    const settingsObj = {};
+    result.rows.forEach((row) => {
+      settingsObj[row.key] = row.value;
+    });
+    res.json(settingsObj);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const updateSettings = async (req, res) => {
+  try {
+    for (const [key, value] of Object.entries(req.body)) {
+      await db.query(
+        `
+        INSERT INTO settings (key, value) 
+        VALUES ($1, $2) 
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+      `,
+        [key, value],
+      );
+    }
+    res.json({ message: "Settings updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const createBlogPost = async (req, res) => {
   const {
     title,
@@ -131,4 +163,6 @@ module.exports = {
   createContactMessage,
   getContactMessages,
   deleteContactMessage,
+  getSettings,
+  updateSettings,
 };

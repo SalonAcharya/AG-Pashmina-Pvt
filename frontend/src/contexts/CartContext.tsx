@@ -4,6 +4,8 @@ import type { Product } from "@/data/products";
 interface CartItem {
   product: Product;
   quantity: number;
+  size?: string;
+  color?: string;
 }
 
 interface CartContextType {
@@ -21,8 +23,32 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    try {
+      const stored = localStorage.getItem("ag_pashmina_cart");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [wishlist, setWishlist] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("ag_pashmina_wishlist");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sync to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem("ag_pashmina_cart", JSON.stringify(items));
+  }, [items]);
+
+  React.useEffect(() => {
+    localStorage.setItem("ag_pashmina_wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
 
   const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prev) => {

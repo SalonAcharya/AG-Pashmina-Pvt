@@ -30,7 +30,17 @@ const ProductCard: React.FC<{ product: any }> = ({ product }) => {
     >
       <div className="relative overflow-hidden rounded-lg bg-card shadow-soft hover:shadow-lift transition-shadow duration-300">
         <Link to={`/product/${product.id}`}>
-          <div className="aspect-[4/5] overflow-hidden bg-muted">
+          <div className="aspect-[4/5] overflow-hidden bg-muted relative">
+            {product.stock_quantity === 0 && (
+              <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                <span className="px-4 py-2 bg-destructive text-white font-body text-[10px] tracking-[0.2em] uppercase font-bold rounded-sm shadow-lg">Sold Out</span>
+              </div>
+            )}
+            {product.stock_quantity > 0 && product.stock_quantity <= (product.low_stock_threshold || 5) && (
+              <div className="absolute top-4 left-4 z-10">
+                <span className="px-2 py-1 bg-orange-500 text-white font-body text-[8px] tracking-[0.1em] uppercase font-bold rounded shadow-sm">Limited</span>
+              </div>
+            )}
             <img
               src={getImgUrl()}
               alt={name}
@@ -56,9 +66,14 @@ const ProductCard: React.FC<{ product: any }> = ({ product }) => {
         <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 z-10">
           <button
             onClick={() => addItem(product)}
-            className="w-full py-2.5 bg-accent text-accent-foreground font-body text-[10px] tracking-[0.15em] uppercase font-semibold rounded-md hover:bg-accent/90 transition-colors"
+            disabled={product.stock_quantity === 0}
+            className={`w-full py-2.5 font-body text-[10px] tracking-[0.15em] uppercase font-semibold rounded-md transition-colors ${
+              product.stock_quantity === 0 
+              ? "bg-secondary text-muted-foreground cursor-not-allowed" 
+              : "bg-accent text-accent-foreground hover:bg-accent/90"
+            }`}
           >
-            Add to Cart
+            {product.stock_quantity === 0 ? "Sold Out" : "Add to Cart"}
           </button>
         </div>
       </div>

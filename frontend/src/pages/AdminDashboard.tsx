@@ -4,29 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Package, List, ShoppingBag, MessageSquare, BookOpen, Edit2, Trash2, X } from "lucide-react";
+import { Loader2, Package, List, ShoppingBag, MessageSquare, BookOpen, Edit2, Trash2, X, Settings as SettingsIcon } from "lucide-react";
 import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
 
 const API_BASE_URL = "http://localhost:5000";
 
 const AdminDashboard = () => {
   const { token, isAdmin } = useAuth();
-  const [data, setData] = useState({ orders: [], categories: [], products: [], messages: [], blogs: [] });
+  const [data, setData] = useState({ orders: [], categories: [], products: [], messages: [], blogs: [], settings: {} as any });
   const [isLoading, setIsLoading] = useState(true);
+  const [qrFile, setQrFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<{ type: string, item: any } | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [o, c, p, m, b] = await Promise.all([
+      const [o, c, p, m, b, s] = await Promise.all([
         fetch(`${API_BASE_URL}/api/orders`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/categories`).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/products`).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/contact-messages`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/blog`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/settings`).then(r => r.json()),
       ]);
-      setData({ orders: o, categories: c, products: p, messages: m, blogs: b });
+      setData({ orders: o, categories: c, products: p, messages: m, blogs: b, settings: s });
     } catch (err) { toast.error("Error loading data"); }
     finally { setIsLoading(false); }
   };
@@ -43,6 +45,47 @@ const AdminDashboard = () => {
       });
       if (res.ok) { fetchData(); toast.success("Deleted!"); }
     } catch (err) { toast.error("Delete failed"); }
+  };
+
+  const handleStatusUpdate = async (id: number, status: string | null, paymentStatus: string | null) => {
+    try {
+      const payload: any = {};
+      if (status) payload.status = status;
+      if (paymentStatus) payload.payment_status = paymentStatus;
+      
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) { toast.success("Order updated"); fetchData(); }
+    } catch { toast.error("Update failed"); }
+  };
+
+  const handleSettingsSave = async () => {
+    try {
+      let finalUrl = undefined;
+      if (qrFile) {
+        const formData = new FormData();
+        formData.append("images", qrFile);
+        const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
+          method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData
+        });
+        const uploadData = await uploadRes.json();
+        finalUrl = uploadData.urls[0];
+      }
+      
+      if (finalUrl) {
+        await fetch(`${API_BASE_URL}/api/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ payment_qr: finalUrl })
+        });
+        toast.success("Settings saved");
+        fetchData();
+        setQrFile(null);
+      }
+    } catch { toast.error("Error saving settings"); }
   };
 
   const getImg = (url: string) => url?.startsWith('http') ? url : `${API_BASE_URL}${url}`;
@@ -79,6 +122,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="orders" className="gap-2"><ShoppingBag size={14} /> Orders</TabsTrigger>
               <TabsTrigger value="blogs" className="gap-2"><BookOpen size={14} /> Blogs</TabsTrigger>
               <TabsTrigger value="messages" className="gap-2"><MessageSquare size={14} /> Messages</TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2"><SettingsIcon size={14} /> Settings</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products">
@@ -162,13 +206,34 @@ const AdminDashboard = () => {
             <TabsContent value="orders">
               <Card className="border-accent/10"><CardContent className="p-0 overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b text-left"><th className="p-4">ID</th><th className="p-4">Customer</th><th className="p-4 text-right">Total</th><th className="p-4 text-center">Status</th><th className="p-4 text-right">Action</th></tr></thead>
+                  <thead><tr className="border-b text-left"><th className="p-4">ID</th><th className="p-4">Customer</th><th className="p-4 text-right">Total</th><th className="p-4 text-center">Status</th><th className="p-4 text-center">Payment</th><th className="p-4 text-center">Proof</th><th className="p-4 text-right">Action</th></tr></thead>
                   <tbody>{data.orders.map((o: any) => (
                     <tr key={o.id} className="border-b hover:bg-muted/30">
                       <td className="p-4 font-mono text-xs">#{String(o.id).padStart(5, '0')}</td>
                       <td className="p-4"><div><p className="font-bold">{o.user_name}</p><p className="text-[10px]">{new Date(o.created_at).toLocaleDateString()}</p></div></td>
-                      <td className="p-4 text-right font-bold">Rs.{o.total_amount}</td>
-                      <td className="p-4 text-center"><span className="text-[10px] uppercase font-bold border rounded px-2 py-1">{o.status}</span></td>
+                      <td className="p-4 text-right">
+                        <p className="font-bold">Rs.{o.total_amount}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">{o.payment_method || 'cod'}</p>
+                      </td>
+                      <td className="p-4 text-center">
+                        <select className="text-[10px] uppercase font-bold border rounded px-1 py-1 bg-transparent cursor-pointer" value={o.status || 'pending'} onChange={(e) => handleStatusUpdate(o.id, e.target.value, null)}>
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                        </select>
+                      </td>
+                      <td className="p-4 text-center">
+                        <select className={`text-[10px] uppercase font-bold border rounded px-1 py-1 bg-transparent cursor-pointer ${o.payment_status === 'paid' ? 'text-green-500' : 'text-red-500'}`} value={o.payment_status || 'unpaid'} onChange={(e) => handleStatusUpdate(o.id, null, e.target.value)}>
+                          <option value="unpaid">Unpaid</option>
+                          <option value="pending_verification">Verify</option>
+                          <option value="paid">Paid</option>
+                        </select>
+                      </td>
+                      <td className="p-4 text-center">
+                        {o.payment_proof ? (
+                          <a href={getImg(o.payment_proof)} target="_blank" className="text-[10px] text-accent hover:underline border border-accent/30 rounded px-2 py-1">View</a>
+                        ) : <span className="text-[10px] text-muted-foreground">-</span>}
+                      </td>
                       <td className="p-4 text-right"><Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete('order', o.id)}><Trash2 size={12} /></Button></td>
                     </tr>
                   ))}</tbody></table></CardContent></Card>
@@ -184,6 +249,32 @@ const AdminDashboard = () => {
                   </Card>
                 ))}
               </div>
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <Card className="max-w-md border-accent/10">
+                <CardHeader><CardTitle className="text-lg">Payment Configurations</CardTitle></CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-bold">FonePay Master QR Code</label>
+                    <div className="flex gap-4 items-end">
+                      <div className="w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center p-2 bg-secondary/10 overflow-hidden">
+                        {qrFile ? (
+                          <img src={URL.createObjectURL(qrFile)} className="w-full h-full object-contain" />
+                        ) : data.settings?.payment_qr ? (
+                          <img src={getImg(data.settings.payment_qr)} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground text-center">No QR uploaded</span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <input type="file" accept="image/*" onChange={(e) => setQrFile(e.target.files?.[0] || null)} className="text-xs border p-1 rounded" />
+                        <Button variant="outline" size="sm" onClick={handleSettingsSave} disabled={!qrFile}>Save QR Setup</Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         )}
