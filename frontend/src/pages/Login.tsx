@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -11,6 +11,14 @@ const Login = () => {
   const [focused, setFocused] = useState<string | null>(null);
   const { login, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Show error if Google OAuth failed
+  useEffect(() => {
+    if (searchParams.get("error") === "google_failed") {
+      toast.error("Google sign-in failed. Please try again.");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (isAuthenticated) {

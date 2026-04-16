@@ -21,6 +21,7 @@ import Wishlist from "./pages/Wishlist";
 import AdminDashboard from "./pages/AdminDashboard";
 import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />

@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const passport = require("../config/passport");
+const jwt = require("jsonwebtoken");
 const authController = require("../controllers/authController");
 const productController = require("../controllers/productController");
 const orderController = require("../controllers/orderController");
@@ -10,6 +12,40 @@ const { verifyToken, isAdmin } = require("../middleware/auth");
 // Auth Routes
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
+
+// Google OAuth routes
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }),
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=google_failed`,
+    session: false,
+  }),
+  (req, res) => {
+    const user = req.user;
+    const token = jwt.sign(
+      { id: user.id, role_id: user.role_id },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" },
+    );
+    const userEncoded = encodeURIComponent(
+      JSON.stringify({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role_id: user.role_id,
+      }),
+    );
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(
+      `${frontendUrl}/auth/callback?token=${token}&user=${userEncoded}`,
+    );
+  },
+);
 
 // Public Product/Category Routes
 router.get("/products", productController.getProducts);
