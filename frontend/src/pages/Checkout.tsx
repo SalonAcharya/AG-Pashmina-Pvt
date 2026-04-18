@@ -100,12 +100,15 @@ const Checkout = () => {
         body: JSON.stringify(orderPayload)
       });
 
-      if (!outRes.ok) throw new Error("Order creation failed");
+      if (!outRes.ok) {
+        const errData = await outRes.json().catch(() => ({}));
+        throw new Error(errData.message || "Order creation failed");
+      }
       toast.success("Order placed successfully!");
       clearCart();
       navigate("/");
-    } catch (err) {
-      toast.error("An error occurred while placing order.");
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while placing order.");
     } finally {
       setIsSubmitting(false);
     }
