@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -15,10 +16,19 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Show error if Google OAuth failed
   useEffect(() => {
-    if (searchParams.get("error") === "google_failed") {
-      toast.error("Google sign-in failed. Please try again.");
+    const error = searchParams.get("error");
+    if (error) {
+      if (error === "google_failed") {
+        toast.error("Google sign-in failed. Please try again.");
+      } else if (error === "This email is already registered with a password. Please log in using your email and password.") {
+        toast.error("This email is already registered with a password. Please log in normally.", {
+          duration: 6000,
+          icon: <AlertCircle className="text-red-500 w-5 h-5" />
+        });
+      } else {
+        toast.error(decodeURIComponent(error));
+      }
     }
   }, [searchParams]);
 
@@ -378,7 +388,7 @@ const Login = () => {
                     </svg>
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <path d="M1 12s4-8 11-8 11-8 11 8-4 8-11 8-11-8-11-8z"/>
                       <circle cx="12" cy="12" r="3"/>
                     </svg>
                   )}

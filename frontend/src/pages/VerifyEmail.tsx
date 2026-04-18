@@ -10,16 +10,16 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const email = searchParams.get("email");
   
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(300); // 5 minutes in seconds
   const [isResending, setIsResending] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus first input on mount
+  // Focus input on mount
   useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   }, []);
 
@@ -38,30 +38,15 @@ const VerifyEmail = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleChange = (index: number, value: string) => {
-    if (isNaN(Number(value))) return; // Only allow numbers
-
-    const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1); // Only take last char
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
-      inputRefs.current[index - 1]?.focus();
-    }
+  const handleChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9]/g, "").slice(0, 6);
+    setCode(cleaned);
   };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    const code = otp.join("");
     if (code.length !== 6) {
-      toast.error("Please enter all 6 digits.");
+      toast.error("Please enter the 6-digit code.");
       return;
     }
 
@@ -102,8 +87,8 @@ const VerifyEmail = () => {
       if (res.ok) {
         toast.success("A new code has been sent!");
         setTimer(300); // Reset timer to 5 mins
-        setOtp(["", "", "", "", "", ""]);
-        inputRefs.current[0]?.focus();
+        setCode("");
+        inputRef.current?.focus();
       } else {
         toast.error(data.message || "Could not resend code");
       }
@@ -133,29 +118,16 @@ const VerifyEmail = () => {
 
         {/* OTP Input Form */}
         <form onSubmit={handleVerify} className="space-y-8">
-          <div className="flex justify-between gap-2">
-            {otp.map((digit, i) => (
-              <input
-                key={i}
-                ref={(el) => (inputRefs.current[i] = el)}
-                type="text"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                onPaste={(e) => {
-                  e.preventDefault();
-                  const pasteData = e.clipboardData.getData("text").slice(0, 6).split("");
-                  const newOtp = [...otp];
-                  pasteData.forEach((char, idx) => {
-                    if (idx < 6 && !isNaN(Number(char))) newOtp[idx] = char;
-                  });
-                  setOtp(newOtp);
-                  inputRefs.current[Math.min(pasteData.length, 5)]?.focus();
-                }}
-                className="w-12 h-16 text-center text-2xl font-bold bg-[#f8fafc] border-2 border-transparent rounded-xl focus:border-black focus:bg-white transition-all outline-none"
-              />
-            ))}
+          <div className="relative group">
+            <input
+              ref={inputRef}
+              type="text"
+              value={code}
+              onChange={(e) => handleChange(e.target.value)}
+              placeholder="0 0 0 0 0 0"
+              className="w-full bg-[#f8fafc] border-2 border-transparent rounded-2xl py-6 text-center text-4xl font-black tracking-[0.5em] focus:border-black focus:bg-white transition-all outline-none placeholder:text-gray-200"
+              maxLength={6}
+            />
           </div>
 
           <div className="text-center">

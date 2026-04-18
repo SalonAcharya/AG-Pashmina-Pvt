@@ -4,13 +4,13 @@ import { Search, ShoppingBag, Heart, Menu, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, LogOut, LayoutDashboard } from "lucide-react";
+import { User, LogOut, LayoutDashboard, KeyRound } from "lucide-react";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { totalItems, wishlist } = useCart();
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout, user } = useAuth();
   const location = useLocation();
   const isHome = location.pathname === "/";
 
@@ -92,19 +92,51 @@ const Navbar = () => {
             </Link>
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                {isAdmin && (
-                  <Link to="/admin" className={`p-2 transition-colors ${isTransparent ? "text-accent-foreground/80 hover:text-accent-foreground" : "hover:text-accent"}`} title="Dashboard">
-                    <LayoutDashboard size={18} strokeWidth={1.5} />
-                  </Link>
-                )}
+              <div className="relative group">
                 <button
-                  onClick={logout}
-                  className={`p-2 transition-colors ${isTransparent ? "text-accent-foreground/80 hover:text-accent-foreground" : "hover:text-accent"}`}
-                  title="Logout"
+                  className={`flex items-center gap-2 p-1.5 rounded-full transition-all ${
+                    isTransparent 
+                      ? "text-accent-foreground/80 hover:text-accent-foreground hover:bg-white/10" 
+                      : "text-foreground hover:text-accent hover:bg-black/5"
+                  }`}
                 >
-                  <LogOut size={18} strokeWidth={1.5} />
+                  <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-bold text-xs shadow-sm">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
                 </button>
+
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                  <div className="px-4 py-3 border-b border-gray-50 mb-1">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{user?.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate mt-0.5">{user?.email}</p>
+                  </div>
+                  
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+                    >
+                      <LayoutDashboard size={14} /> Admin Dashboard
+                    </Link>
+                  )}
+                  
+                  {user?.hasPassword !== false && (
+                    <Link
+                      to="/change-password"
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+                    >
+                      <KeyRound size={14} /> Change Password
+                    </Link>
+                  )}
+
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors mt-1 border-t border-gray-50 pt-3"
+                  >
+                    <LogOut size={14} /> Log Out
+                  </button>
+                </div>
               </div>
             ) : (
               <Link to="/login" className={`p-2 transition-colors ${isTransparent ? "text-accent-foreground/80 hover:text-accent-foreground" : "hover:text-accent"}`} title="Login">
@@ -147,6 +179,11 @@ const Navbar = () => {
                     {isAdmin && (
                       <Link to="/admin" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
                         <LayoutDashboard size={16} /> Admin Dashboard
+                      </Link>
+                    )}
+                    {user?.hasPassword !== false && (
+                      <Link to="/change-password" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
+                        <KeyRound size={16} /> Change Password
                       </Link>
                     )}
                     <button onClick={logout} className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3 text-left">

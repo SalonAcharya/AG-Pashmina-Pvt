@@ -24,7 +24,7 @@ passport.use(
 
         // 1. Try to find by google_id
         let result = await db.query(
-          "SELECT id, name, email, role_id FROM users WHERE google_id = $1",
+          "SELECT id, name, email, role_id, password_hash FROM users WHERE google_id = $1",
           [googleId],
         );
 
@@ -34,21 +34,23 @@ passport.use(
 
         // 2. Try to find existing user by email — link the google_id
         result = await db.query(
-          "SELECT id, name, email, role_id FROM users WHERE email = $1",
+          "SELECT id, name, email, role_id, password_hash FROM users WHERE email = $1",
           [email],
         );
 
         if (result.rows.length > 0) {
-          await db.query("UPDATE users SET google_id = $1 WHERE email = $2", [
-            googleId,
-            email,
-          ]);
-          return done(null, result.rows[0]);
+          const user = result.rows[0];
+          // If user exists by email but google_id is NULL, it means they registered via email/password
+          // We should NOT auto-link, as per user request to show "already registered" logic.
+          return done(null, false, {
+            message:
+              "This email is already registered with a password. Please log in using your email and password.",
+          });
         }
 
         // 3. Create brand new user (no password — Google-only account)
         const inserted = await db.query(
-          "INSERT INTO users (name, email, google_id, role_id) VALUES ($1, $2, $3, 2) RETURNING id, name, email, role_id",
+          "INSERT INTO users (name, email, google_id, role_id) VALUES ($1, $2, $3, 2) RETURNING id, name, email, role_id, password_hash",
           [name, email, googleId],
         );
         return done(null, inserted.rows[0]);

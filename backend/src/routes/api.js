@@ -14,6 +14,13 @@ router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
 router.post("/auth/verify", authController.verifyEmail);
 router.post("/auth/resend-verification", authController.resendVerification);
+router.post("/auth/forgot-password", authController.forgotPassword);
+router.post("/auth/reset-password", authController.resetPassword);
+router.post(
+  "/auth/change-password",
+  verifyToken,
+  authController.changePassword,
+);
 
 // Google OAuth routes
 router.get(
@@ -29,17 +36,32 @@ router.get(
   }),
   (req, res) => {
     const user = req.user;
+    if (!user) {
+      // This happens if authentication fails but passport doesn't redirect automatically
+      const failureMsg = req.authInfo?.message || "google_failed";
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      return res.redirect(
+        `${frontendUrl}/login?error=${encodeURIComponent(failureMsg)}`,
+      );
+    }
+
     const token = jwt.sign(
       { id: user.id, role_id: user.role_id },
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
     );
+
+    // We check if password_hash is null to determine if it's a social-only account
+    // For this, we need to ensure passport returned the whole user object or just query it here
+    const hasPassword = user.password_hash ? true : false;
+
     const userEncoded = encodeURIComponent(
       JSON.stringify({
         id: user.id,
         name: user.name,
         email: user.email,
         role_id: user.role_id,
+        hasPassword: hasPassword,
       }),
     );
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
