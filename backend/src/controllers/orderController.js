@@ -1,5 +1,17 @@
 const db = require("../config/db");
 
+const parsePgArray = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val.startsWith("{") && val.endsWith("}")) {
+    return val
+      .slice(1, -1)
+      .split(",")
+      .map((item) => item.trim().replace(/^"(.*)"$/, "$1"));
+  }
+  return [val];
+};
+
 const createOrder = async (req, res) => {
   const {
     total_amount,
@@ -121,6 +133,8 @@ const getOrders = async (req, res) => {
       const itemsByOrder = {};
       for (const item of itemsRes.rows) {
         if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+        // Ensure product_images is a real array
+        item.product_images = parsePgArray(item.product_images);
         itemsByOrder[item.order_id].push(item);
       }
 

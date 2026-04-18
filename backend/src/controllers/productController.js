@@ -1,5 +1,27 @@
 const db = require("../config/db");
 
+const parsePgArray = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val.startsWith("{") && val.endsWith("}")) {
+    return val
+      .slice(1, -1)
+      .split(",")
+      .map((item) => item.trim().replace(/^"(.*)"$/, "$1"));
+  }
+  return [val];
+};
+
+const formatProduct = (p) => {
+  if (!p) return p;
+  return {
+    ...p,
+    images: parsePgArray(p.images),
+    sizes: parsePgArray(p.sizes),
+    colors: parsePgArray(p.colors),
+  };
+};
+
 // Category Controllers
 const getCategories = async (req, res) => {
   try {
@@ -53,7 +75,7 @@ const getProducts = async (req, res) => {
     const result = await db.query(
       "SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id",
     );
-    res.json(result.rows);
+    res.json(result.rows.map(formatProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -94,7 +116,7 @@ const createProduct = async (req, res) => {
         low_stock_threshold,
       ],
     );
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(formatProduct(result.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -139,7 +161,7 @@ const updateProduct = async (req, res) => {
         id,
       ],
     );
-    res.json(result.rows[0]);
+    res.json(formatProduct(result.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -165,7 +187,7 @@ const getProductById = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Product not found" });
     }
-    res.json(result.rows[0]);
+    res.json(formatProduct(result.rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
