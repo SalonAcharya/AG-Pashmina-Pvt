@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +32,7 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -410,7 +412,7 @@ const Login = () => {
               {/* Google */}
               <button
                 type="button"
-                onClick={() => { window.location.href = "http://localhost:5000/api/auth/google"; }}
+                onClick={() => { window.location.href = `${API_BASE_URL}/api/auth/google`; }}
                 className="ag-google-btn"
               >
                 <svg style={{ marginRight: "10px" }} height="18" viewBox="0 0 488 512" xmlns="http://www.w3.org/2000/svg">

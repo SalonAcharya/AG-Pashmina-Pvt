@@ -12,6 +12,8 @@ const { verifyToken, isAdmin } = require("../middleware/auth");
 // Auth Routes
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
+router.post("/auth/verify", authController.verifyEmail);
+router.post("/auth/resend-verification", authController.resendVerification);
 
 // Google OAuth routes
 router.get(

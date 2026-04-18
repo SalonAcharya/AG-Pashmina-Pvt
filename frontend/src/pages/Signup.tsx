@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const Signup = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -9,20 +11,22 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       const data = await response.json();
       if (response.ok) {
-        login(data.user, data.token);
-        toast.success("Account created successfully!");
+        toast.success("Account created! Please enter the 6-digit code sent to your email.");
+        setForm({ name: "", email: "", password: "" });
+        navigate(`/verify-email?email=${encodeURIComponent(form.email)}`);
       } else {
         toast.error(data.message || "Signup failed");
       }

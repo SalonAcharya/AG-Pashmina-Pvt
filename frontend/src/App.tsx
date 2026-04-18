@@ -22,6 +22,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />

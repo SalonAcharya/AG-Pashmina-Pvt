@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const emailService = require("../services/emailService");
 
 const parsePgArray = (val) => {
   if (!val) return [];
@@ -89,6 +90,41 @@ const createOrder = async (req, res) => {
 
     await client.query("COMMIT");
     res.status(201).json({ id: orderId, message: "Order placed successfully" });
+
+    // ── 4. Send Confirmation Email (Asynchronously) ─────────────────────────
+    try {
+      // Fetch user info for the email
+      const userRes = await db.query(
+        "SELECT name, email FROM users WHERE id = $1",
+        [user_id],
+      );
+      const user = userRes.rows[0];
+
+      if (user) {
+        // Fetch order items with names for the email
+        const itemsWithNamesRes = await db.query(
+          `SELECT oi.*, p.name AS product_name 
+           FROM order_items oi JOIN products p ON oi.product_id = p.id 
+           WHERE oi.order_id = $1`,
+          [orderId],
+        );
+
+        const fullOrder = {
+          id: orderId,
+          total_amount,
+          shipping_address,
+          items: itemsWithNamesRes.rows,
+        };
+
+        emailService.sendOrderConfirmationEmail(
+          user.email,
+          user.name,
+          fullOrder,
+        );
+      }
+    } catch (emailErr) {
+      console.error("Order confirmation email trigger failed:", emailErr);
+    }
   } catch (err) {
     await client.query("ROLLBACK");
     // Stock-related errors get a 400; other DB errors get 500
