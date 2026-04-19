@@ -41,7 +41,7 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Brand */}
             <div>
-              <h4 className="font-display text-2xl mb-1">AG Pashmina</h4>
+              <h4 className="font-display text-2xl mb-1">AG Pashmina Pvt ltd </h4>
               <p className="font-body text-[10px] tracking-[0.2em] uppercase text-primary-foreground/40 mb-4">Pvt. Ltd.</p>
               <p className="font-body text-xs text-primary-foreground/50 leading-relaxed">
                 Authentic Nepali luxury textiles, hand-crafted in the shadow of the Himalayas. Each piece carries centuries of artisan heritage.
@@ -104,19 +104,19 @@ const Footer = () => {
                 <div className="flex items-start gap-3">
                   <MapPin size={14} className="mt-1 text-accent shrink-0" strokeWidth={1.5} />
                   <span className="font-body text-sm text-primary-foreground/50">
-                    Thamel, Kathmandu, Nepal
+                    Chhetrapati, Kathmandu, Nepal
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone size={14} className="text-accent shrink-0" strokeWidth={1.5} />
                   <span className="font-body text-sm text-primary-foreground/50">
-                    +977 1 4XXXXXX
+                    +977 9843759774
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail size={14} className="text-accent shrink-0" strokeWidth={1.5} />
                   <span className="font-body text-sm text-primary-foreground/50">
-                    info@agpashmina.com
+                    sarojac.11@gmail.com
                   </span>
                 </div>
               </div>
