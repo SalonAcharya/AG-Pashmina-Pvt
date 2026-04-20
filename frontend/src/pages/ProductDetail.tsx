@@ -195,7 +195,7 @@ const ProductDetail = () => {
                     <Star key={i} size={16} className={i < 5 ? "fill-current" : "text-border"} strokeWidth={1.5} />
                   ))}
                 </div>
-                <span className="font-body text-xs text-muted-foreground uppercase tracking-widest border-l border-border pl-4">Authentic Pashmina</span>
+                <span className="font-body text-xs text-muted-foreground uppercase tracking-widest border-l border-border pl-4">Authentic Product</span>
               </div>
 
               <div className="flex items-center gap-6 mb-10">
@@ -224,17 +224,17 @@ const ProductDetail = () => {
               )}
 
               <div className="grid grid-cols-2 gap-y-6 mb-12">
-                <div>
+                {/* <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Craftsmanship</p>
                   <p className="font-body text-sm font-semibold">Hand-loomed in Kathmandu</p>
-                </div>
+                </div> */}
                 <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Material</p>
                   <p className="font-body text-sm font-semibold">{product.category_name || "100% Cashmere"}</p>
                 </div>
                 <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Shipping</p>
-                  <p className="font-body text-sm font-semibold text-accent font-bold">Complimentary Global Delivery</p>
+                  <p className="font-body text-sm font-semibold text-accent font-bold">Delivery all over Nepal</p>
                 </div>
                 <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Status</p>
@@ -286,7 +286,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-6 pt-10 border-t border-border">
+              {/* <div className="grid grid-cols-3 gap-6 pt-10 border-t border-border">
                 {[
                   { icon: Truck, label: "Eco-Shipping" },
                   { icon: RotateCcw, label: "90-Day Returns" },
@@ -299,7 +299,7 @@ const ProductDetail = () => {
                     <span className="font-body text-[9px] tracking-[0.2em] uppercase text-muted-foreground font-bold">{item.label}</span>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
           </FadeInUp>
         </div>
