@@ -112,6 +112,13 @@ router.delete(
   extraController.deleteContactMessage,
 );
 
+router.patch(
+  "/contact-messages/read-all",
+  verifyToken,
+  isAdmin,
+  extraController.markMessagesAsRead,
+);
+
 // Admin Only Routes
 router.post(
   "/categories",

@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const wsService = require("../config/ws");
 
 // Blog Controllers
 const getBlogPosts = async (req, res) => {
@@ -128,7 +129,18 @@ const createContactMessage = async (req, res) => {
       "INSERT INTO contact_messages (name, email, subject, message) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, email, subject, message],
     );
-    res.status(201).json(result.rows[0]);
+    const saved = result.rows[0];
+
+    // Broadcast real-time notification to admin
+    wsService.broadcast({
+      type: "new_message",
+      messageId: saved.id,
+      name: saved.name,
+      subject: saved.subject || "(no subject)",
+      timestamp: new Date().toISOString(),
+    });
+
+    res.status(201).json(saved);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -155,6 +167,17 @@ const deleteContactMessage = async (req, res) => {
   }
 };
 
+const markMessagesAsRead = async (req, res) => {
+  try {
+    await db.query(
+      "UPDATE contact_messages SET is_read = TRUE WHERE is_read = FALSE",
+    );
+    res.json({ message: "All messages marked as read" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getBlogPosts,
   createBlogPost,
@@ -163,6 +186,7 @@ module.exports = {
   createContactMessage,
   getContactMessages,
   deleteContactMessage,
+  markMessagesAsRead,
   getSettings,
   updateSettings,
 };

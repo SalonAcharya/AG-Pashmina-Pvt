@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import {
   Loader2, Package, List, ShoppingBag, MessageSquare,
   BookOpen, Edit2, Trash2, Settings as SettingsIcon,
-  ChevronDown, ChevronRight, AlertTriangle, CheckCircle, XCircle
+  ChevronDown, ChevronRight, AlertTriangle, CheckCircle, XCircle,
+  Bell, X as XIcon
 } from "lucide-react";
 import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
 
@@ -34,6 +35,16 @@ const StockBadge = ({ qty, threshold }: { qty: number; threshold: number }) => {
   );
 };
 
+// ── Tab badge helper ──────────────────────────────────────────────────────────
+const TabBadge = ({ count }: { count: number }) => {
+  if (count <= 0) return null;
+  return (
+    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-lg bg-accent/20 text-[10px] font-bold text-accent border border-accent/20 px-1.5 min-w-[20px]">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+};
+
 const AdminDashboard = () => {
   const { token, isAdmin } = useAuth();
   const [data, setData] = useState({
@@ -48,6 +59,10 @@ const AdminDashboard = () => {
   const [qrFile, setQrFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<{ type: string; item: any } | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+  const [notifications, setNotifications] = useState<{ id: number; type: "order" | "msg"; orderId?: number; msgId?: number; total?: string; method?: string; sender?: string; subject?: string; time: string }[]>([]);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [orderUnread, setOrderUnread] = useState(0);
+  const [msgUnread, setMsgUnread] = useState(0);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -71,6 +86,60 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (isAdmin) fetchData();
+  }, [isAdmin]);
+
+  // ── WebSocket: listen for new orders & messages ──────────────────────
+  useEffect(() => {
+    if (!isAdmin) return;
+    const ws = new WebSocket("ws://localhost:5000");
+
+    ws.onopen = () => console.log("[WS] Admin connected");
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+
+        if (msg.type === "new_order") {
+          const notif = {
+            id: Date.now(),
+            type: "order" as const,
+            orderId: msg.orderId,
+            total: msg.total,
+            method: msg.paymentMethod,
+            time: new Date(msg.timestamp).toLocaleTimeString(),
+          };
+          setNotifications((prev) => [notif, ...prev].slice(0, 20));
+          setOrderUnread((c) => c + 1);
+          toast(`🛍️ New Order #${String(msg.orderId).padStart(5, "0")}`, {
+            description: `Rs.${msg.total} via ${msg.paymentMethod?.toUpperCase() || "COD"}`,
+            action: { label: "View", onClick: fetchData },
+            duration: 8000,
+          });
+        }
+
+        if (msg.type === "new_message") {
+          const notif = {
+            id: Date.now() + 1,
+            type: "msg" as const,
+            msgId: msg.messageId,
+            sender: msg.name,
+            subject: msg.subject,
+            time: new Date(msg.timestamp).toLocaleTimeString(),
+          };
+          setNotifications((prev) => [notif, ...prev].slice(0, 20));
+          setMsgUnread((c) => c + 1);
+          toast(`📬 Message from ${msg.name}`, {
+            description: msg.subject || "(no subject)",
+            action: { label: "View", onClick: fetchData },
+            duration: 8000,
+          });
+        }
+      } catch (_) {}
+    };
+
+    ws.onerror = (err) => console.warn("[WS] Error", err);
+
+    return () => ws.close();
   }, [isAdmin]);
 
   const handleDelete = async (type: string, id: number) => {
@@ -151,6 +220,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const pendingOrders = data.orders.filter((o: any) => o.status === "pending").length;
+  const unreadMessagesCount = data.messages.filter((m: any) => !m.is_read).length;
+
+  const handleTabChange = async (value: string) => {
+    if (value === "orders") {
+      setOrderUnread(0);
+    }
+    if (value === "messages" && unreadMessagesCount > 0) {
+      try {
+        await fetch(`${API_BASE_URL}/api/contact-messages/read-all`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Refresh local data to reflect 'read' status
+        fetchData();
+        setMsgUnread(0);
+      } catch (err) {
+        console.error("Failed to mark messages as read", err);
+      }
+    }
+  };
+
   const getImg = (url: string) =>
     url?.startsWith("http") ? url : `${API_BASE_URL}${url}`;
 
@@ -193,9 +284,90 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <h1 className="font-display text-4xl">Admin Dashboard</h1>
-          <Button variant="luxury" onClick={fetchData}>
-            Refresh
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowNotifPanel(!showNotifPanel); setOrderUnread(0); setMsgUnread(0); }}
+                className="relative p-2 rounded-full hover:bg-muted/40 transition-colors"
+                title="Notifications"
+              >
+                <Bell size={20} />
+                {/* Two separate badges for orders and messages */}
+                {orderUnread > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {orderUnread > 9 ? "9+" : orderUnread}
+                  </span>
+                )}
+                {msgUnread > 0 && (
+                  <span className="absolute -top-0.5 left-4 w-5 h-5 bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {msgUnread > 9 ? "9+" : msgUnread}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Panel */}
+              {showNotifPanel && (
+                <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <p className="text-xs font-bold uppercase tracking-wider">Notifications</p>
+                    <div className="flex gap-2">
+                      {notifications.length > 0 && (
+                        <button onClick={() => setNotifications([])} className="text-[10px] text-muted-foreground hover:text-destructive transition-colors">
+                          Clear All
+                        </button>
+                      )}
+                      <button onClick={() => setShowNotifPanel(false)}>
+                        <XIcon size={14} className="text-muted-foreground" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
+                        <Bell size={24} className="text-muted-foreground/40" />
+                        <p className="text-xs text-muted-foreground">No new notifications</p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-border/50 hover:bg-muted/20 transition-colors cursor-pointer"
+                          onClick={() => { fetchData(); setShowNotifPanel(false); }}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                            n.type === "order" ? "bg-accent/15" : "bg-blue-500/15"
+                          }`}>
+                            {n.type === "order"
+                              ? <ShoppingBag size={14} className="text-accent" />
+                              : <MessageSquare size={14} className="text-blue-500" />
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            {n.type === "order" ? (
+                              <>
+                                <p className="text-xs font-bold">New Order #{String(n.orderId).padStart(5, "0")}</p>
+                                <p className="text-[10px] text-muted-foreground">Rs.{n.total} · {n.method?.toUpperCase()} · {n.time}</p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-xs font-bold">Message from {n.sender}</p>
+                                <p className="text-[10px] text-muted-foreground">{n.subject} · {n.time}</p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Button variant="luxury" onClick={fetchData}>
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -203,7 +375,7 @@ const AdminDashboard = () => {
             <Loader2 className="animate-spin h-10 w-10 text-accent" />
           </div>
         ) : (
-          <Tabs defaultValue="products" className="space-y-6">
+          <Tabs defaultValue="products" className="space-y-6" onValueChange={handleTabChange}>
             <TabsList className="bg-card border w-full justify-start p-1 gap-1 overflow-x-auto">
               <TabsTrigger value="products" className="gap-2">
                 <Package size={14} /> Products
@@ -211,14 +383,18 @@ const AdminDashboard = () => {
               <TabsTrigger value="categories" className="gap-2">
                 <List size={14} /> Categories
               </TabsTrigger>
-              <TabsTrigger value="orders" className="gap-2">
-                <ShoppingBag size={14} /> Orders
+              <TabsTrigger value="orders" className="gap-2 flex-grow sm:flex-grow-0 justify-start sm:justify-center">
+                <ShoppingBag size={14} /> 
+                <span>Orders</span>
+                <TabBadge count={pendingOrders} />
               </TabsTrigger>
-              <TabsTrigger value="blogs" className="gap-2">
+              <TabsTrigger value="blogs" className="gap-2 flex-grow sm:flex-grow-0 justify-start sm:justify-center">
                 <BookOpen size={14} /> Blogs
               </TabsTrigger>
-              <TabsTrigger value="messages" className="gap-2">
-                <MessageSquare size={14} /> Messages
+              <TabsTrigger value="messages" className="gap-2 flex-grow sm:flex-grow-0 justify-start sm:justify-center">
+                <MessageSquare size={14} /> 
+                <span>Messages</span>
+                <TabBadge count={unreadMessagesCount} />
               </TabsTrigger>
               <TabsTrigger value="settings" className="gap-2">
                 <SettingsIcon size={14} /> Settings
