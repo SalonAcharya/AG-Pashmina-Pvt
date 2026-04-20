@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const emailService = require("../services/emailService");
+const wsService = require("../config/ws");
 
 const parsePgArray = (val) => {
   if (!val) return [];
@@ -89,6 +90,17 @@ const createOrder = async (req, res) => {
     }
 
     await client.query("COMMIT");
+
+    // ── Broadcast real-time notification to admin dashboard ─────────────────
+    wsService.broadcast({
+      type: "new_order",
+      orderId: orderId,
+      total: total_amount,
+      paymentMethod: payment_method || "cod",
+      userId: user_id,
+      timestamp: new Date().toISOString(),
+    });
+
     res.status(201).json({ id: orderId, message: "Order placed successfully" });
 
     // ── 4. Send Confirmation Email (Asynchronously) ─────────────────────────
