@@ -4,7 +4,7 @@ import { Search, ShoppingBag, Heart, Menu, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, LogOut, LayoutDashboard, KeyRound } from "lucide-react";
+import { User, LogOut, LayoutDashboard, KeyRound, ShoppingBag as OrdersIcon } from "lucide-react";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -112,12 +112,19 @@ const Navbar = () => {
                     <p className="text-[10px] text-gray-400 truncate mt-0.5">{user?.email}</p>
                   </div>
                   
-                  {isAdmin && (
+                  {isAdmin ? (
                     <Link
                       to="/admin"
                       className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
                     >
                       <LayoutDashboard size={14} /> Admin Dashboard
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+                    >
+                      <OrdersIcon size={14} /> My Orders
                     </Link>
                   )}
                   
@@ -176,9 +183,13 @@ const Navbar = () => {
               <div className="pt-4 border-t border-border flex flex-col gap-6">
                 {isAuthenticated ? (
                   <>
-                    {isAdmin && (
+                    {isAdmin ? (
                       <Link to="/admin" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
                         <LayoutDashboard size={16} /> Admin Dashboard
+                      </Link>
+                    ) : (
+                      <Link to="/dashboard" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
+                        <OrdersIcon size={16} /> My Orders
                       </Link>
                     )}
                     {user?.hasPassword !== false && (
