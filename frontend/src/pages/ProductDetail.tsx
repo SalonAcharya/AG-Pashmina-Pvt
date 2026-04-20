@@ -276,7 +276,7 @@ const ProductDetail = () => {
                   </button>
                 </div>
                 <a
-                  href={`https://wa.me/9779749413559?text=${encodeURIComponent(`Hi, I am interested in the ${product.name} (Rs. ${product.sale_price}). Is this currently available?`)}`}
+                  href={`https://wa.me/9779843759774?text=${encodeURIComponent(`Hi, I am interested in the ${product.name} (Rs. ${product.sale_price}). Is this currently available?`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center py-4 bg-[#25D366] text-white font-body text-xs tracking-[0.2em] uppercase font-bold rounded-md hover:bg-[#20bd5a] transition-all duration-300"
