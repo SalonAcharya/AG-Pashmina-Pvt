@@ -1,9 +1,25 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const API_BASE_URL = "http://localhost:5000";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        const data = await response.json();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Footer categories fetch failed", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <footer>
@@ -77,21 +93,22 @@ const Footer = () => {
                 Collections
               </h5>
               <div className="flex flex-col gap-3">
-                {[
-                  { to: "/shop?category=Cashmere", label: "Cashmere" },
-                  { to: "/shop?category=Pashmina", label: "Pashmina" },
-                  { to: "/shop?category=Yak+Wool", label: "Yak Wool" },
-                  { to: "/shop?category=Fine+Wool", label: "Fine Wool" },
-                  { to: "/shop?category=Modal+Silk", label: "Modal Silk" },
-                ].map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="font-body text-sm text-primary-foreground/50 hover:text-accent transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                {categories.length > 0 ? (
+                  categories.slice(0, 6).map((cat) => (
+                    <Link
+                      key={cat.id}
+                      to={`/shop?category=${cat.id}`}
+                      className="font-body text-sm text-primary-foreground/50 hover:text-accent transition-colors"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))
+                ) : (
+                  <>
+                    <Link to="/shop?category=Cashmere" className="font-body text-sm text-primary-foreground/50 hover:text-accent transition-colors">Cashmere</Link>
+                    <Link to="/shop?category=Pashmina" className="font-body text-sm text-primary-foreground/50 hover:text-accent transition-colors">Pashmina</Link>
+                  </>
+                )}
               </div>
             </div>
 
