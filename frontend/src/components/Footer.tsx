@@ -116,7 +116,7 @@ const Footer = () => {
                 <div className="flex items-center gap-3">
                   <Mail size={14} className="text-accent shrink-0" strokeWidth={1.5} />
                   <span className="font-body text-sm text-primary-foreground/50">
-                    sarojac.11@gmail.com
+                    agpashmina902@gmail.com
                   </span>
                 </div>
               </div>
