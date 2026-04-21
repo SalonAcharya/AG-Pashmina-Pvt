@@ -9,6 +9,7 @@ const wsService = require("./config/ws");
 const path = require("path");
 
 const app = express();
+app.set("trust proxy", 1); // Trust the proxy (Render) to handle HTTPS correctly
 const PORT = process.env.PORT || 5000;
 
 app.use(
