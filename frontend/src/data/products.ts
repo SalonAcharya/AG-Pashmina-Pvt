@@ -15,15 +15,21 @@ export interface Product {
   id: string;
   name: string;
   category: Category;
+  category_name?: string;
   price: number;
+  sale_price?: number;
+  base_price?: number;
   rating: number;
   description: string;
-  shortDescription: string;
-  material: string;
-  origin: string;
-  image: string;
+  shortDescription?: string;
+  material?: string;
+  origin?: string;
+  image?: string;
   images: string[];
-  inStock: boolean;
+  inStock?: boolean;
+  stock_quantity?: number;
+  sizes?: string[];
+  colors?: string[];
 }
 
 export const products: Product[] = [

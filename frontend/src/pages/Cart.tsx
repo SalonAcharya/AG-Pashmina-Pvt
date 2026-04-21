@@ -3,8 +3,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { FadeInUp } from "@/components/FadeInUp";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
-
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const Cart = () => {
   const { items, removeItem, updateQuantity } = useCart();

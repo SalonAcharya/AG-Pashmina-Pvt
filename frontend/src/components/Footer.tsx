@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const Footer = () => {
   const [email, setEmail] = useState("");

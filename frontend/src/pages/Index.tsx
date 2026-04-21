@@ -6,7 +6,7 @@ import { Star, Shield, Gem, Package, ChevronRight, ChevronDown } from "lucide-re
 import heroBright from "@/assets/hero-bright.jpg";
 import heroMountains from "@/assets/hero-mountains.jpg";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "https://ag-pashmina-pvt.onrender.com";
 
 const Index = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);

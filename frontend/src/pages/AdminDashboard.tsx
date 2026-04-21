@@ -11,8 +11,7 @@ import {
   Bell, X as XIcon
 } from "lucide-react";
 import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
-
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 // ── Stock badge helper ────────────────────────────────────────────────────────
 const StockBadge = ({ qty, threshold }: { qty: number; threshold: number }) => {
@@ -91,7 +90,7 @@ const AdminDashboard = () => {
   // ── WebSocket: listen for new orders & messages ──────────────────────
   useEffect(() => {
     if (!isAdmin) return;
-    const ws = new WebSocket("ws://localhost:5000");
+    const ws = new WebSocket(API_BASE_URL.replace(/^https/, "wss").replace(/^http/, "ws"));
 
     ws.onopen = () => console.log("[WS] Admin connected");
 

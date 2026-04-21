@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const Checkout = () => {
   const { items, clearCart } = useCart();

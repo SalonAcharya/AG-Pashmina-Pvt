@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FadeInUp } from "@/components/FadeInUp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
@@ -13,7 +14,7 @@ const Blog = () => {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/blog");
+      const res = await fetch(`${API_BASE_URL}/api/blog`);
       const data = await res.json();
       setPosts(data);
     } catch (err) {

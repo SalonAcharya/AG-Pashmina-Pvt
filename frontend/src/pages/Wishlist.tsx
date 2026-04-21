@@ -6,7 +6,7 @@ import { FadeInUp } from "@/components/FadeInUp";
 import { Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const Wishlist = () => {
   const { wishlist } = useCart();

@@ -3,7 +3,7 @@ import { Heart, Star } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { motion } from "framer-motion";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const ProductCard: React.FC<{ product: any }> = ({ product }) => {
   const { addItem, wishlist, toggleWishlist } = useCart();

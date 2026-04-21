@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/api";
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -12,7 +13,7 @@ const Contact = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/contact", {
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

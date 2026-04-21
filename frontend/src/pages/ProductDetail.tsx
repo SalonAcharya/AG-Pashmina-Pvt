@@ -7,7 +7,7 @@ import { FadeInUp } from "@/components/FadeInUp";
 import { Heart, Minus, Plus, ChevronLeft, Star, Truck, RotateCcw, Shield, Loader2, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const ProductDetail = () => {
   const { id } = useParams();

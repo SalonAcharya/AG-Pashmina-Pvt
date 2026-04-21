@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Plus, X } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, editData?: any, onCancel?: () => void }) => {
   const [name, setName] = useState(editData?.name || "");
@@ -19,7 +20,7 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
     const formData = new FormData();
     formData.append("images", imageFile);
     try {
-      const res = await fetch("http://localhost:5000/api/upload", {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
@@ -37,7 +38,7 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
 
     const token = localStorage.getItem("token");
     const method = editData ? "PUT" : "POST";
-    const url = editData ? `http://localhost:5000/api/categories/${editData.id}` : "http://localhost:5000/api/categories";
+    const url = editData ? `${API_BASE_URL}/api/categories/${editData.id}` : `${API_BASE_URL}/api/categories`;
     
     try {
       const res = await fetch(url, {
@@ -65,7 +66,7 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
         <div className="flex items-center gap-4">
           {(imageUrl || imageFile) && (
             <div className="w-12 h-12 rounded border overflow-hidden">
-              <img src={imageFile ? URL.createObjectURL(imageFile) : `http://localhost:5000${imageUrl}`} className="w-full h-full object-cover" />
+              <img src={imageFile ? URL.createObjectURL(imageFile) : `${API_BASE_URL}${imageUrl}`} className="w-full h-full object-cover" />
             </div>
           )}
           <Input type="file" onChange={e => setImageFile(e.target.files?.[0] || null)} className="text-xs" />
@@ -98,7 +99,7 @@ export const BlogForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, edi
     if (imageFile) {
       const formData = new FormData();
       formData.append("images", imageFile);
-      const res = await fetch("http://localhost:5000/api/upload", {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
@@ -109,7 +110,7 @@ export const BlogForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, edi
 
     const token = localStorage.getItem("token");
     const method = editData ? "PUT" : "POST";
-    const url = editData ? `http://localhost:5000/api/blog/${editData.id}` : "http://localhost:5000/api/blog";
+    const url = editData ? `${API_BASE_URL}/api/blog/${editData.id}` : `${API_BASE_URL}/api/blog`;
     
     try {
       const res = await fetch(url, {
@@ -199,12 +200,12 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/upload", {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      
+
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       return data.urls;
@@ -236,7 +237,7 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
     
     const token = localStorage.getItem("token");
     const method = editData ? "PUT" : "POST";
-    const url = editData ? `http://localhost:5000/api/products/${editData.id}` : "http://localhost:5000/api/products";
+    const url = editData ? `${API_BASE_URL}/api/products/${editData.id}` : `${API_BASE_URL}/api/products`;
 
     try {
       const res = await fetch(url, {
@@ -322,7 +323,7 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
           <div className="flex flex-wrap gap-2 mb-2">
             {form.images.map((url, idx) => (
               <div key={idx} className="relative w-16 h-16 border rounded overflow-hidden group">
-                <img src={url.startsWith('http') ? url : `http://localhost:5000${url}`} className="w-full h-full object-cover" />
+                <img src={url.startsWith('http') ? url : `${API_BASE_URL}${url}`} className="w-full h-full object-cover" />
                 <button type="button" onClick={() => setForm({...form, images: form.images.filter((_, i) => i !== idx)})} className="absolute top-0 right-0 bg-destructive text-white p-0.5 opacity-0 group-hover:opacity-100"><X size={10} /></button>
               </div>
             ))}

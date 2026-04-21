@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const ChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState("");

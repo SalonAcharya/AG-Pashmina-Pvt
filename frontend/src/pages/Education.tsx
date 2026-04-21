@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FadeInUp } from "@/components/FadeInUp";
 import { Loader2 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/lib/api";
 
 const Education = () => {
   const [blogs, setBlogs] = useState([]);
