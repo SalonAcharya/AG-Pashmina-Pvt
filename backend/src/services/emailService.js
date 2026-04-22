@@ -2,7 +2,7 @@ const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
-const FROM_EMAIL = "Pashmina <onboarding@resend.dev>";
+const FROM_EMAIL = process.env.MAIL_FROM || "Pashmina <onboarding@resend.dev>";
 
 const sendVerificationEmail = async (email, name, code) => {
   try {
