@@ -17,7 +17,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://agpashmina.com.np",
   "https://www.agpashmina.com.np",
-  "https://ag-pashmina-pvt-ltd.vercel.app/",
+  "https://ag-pashmina-pvt-ltd.vercel.app",
 ];
 
 // ✅ CORS setup

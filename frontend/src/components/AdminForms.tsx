@@ -66,7 +66,7 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
         <div className="flex items-center gap-4">
           {(imageUrl || imageFile) && (
             <div className="w-12 h-12 rounded border overflow-hidden">
-              <img src={imageFile ? URL.createObjectURL(imageFile) : `${API_BASE_URL}${imageUrl}`} className="w-full h-full object-cover" />
+              <img src={imageFile ? URL.createObjectURL(imageFile) : imageUrl} className="w-full h-full object-cover" />
             </div>
           )}
           <Input type="file" onChange={e => setImageFile(e.target.files?.[0] || null)} className="text-xs" />
