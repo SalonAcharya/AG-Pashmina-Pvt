@@ -26,8 +26,10 @@ const upload = multer({
   },
 });
 
-// Helper: compress image buffer using sharp, targeting ~2MB max output
 async function compressImage(buffer, mimetype) {
+  console.log(
+    `Compressing ${mimetype} buffer of size ${buffer.length} bytes...`,
+  );
   const MAX_OUTPUT_BYTES = 500 * 1024; // 500 KB hard ceiling
 
   if (mimetype === "image/gif") return buffer;
@@ -81,16 +83,29 @@ router.post(
   },
   async (req, res) => {
     try {
+      console.log("Files received by upload route:", req.files?.length);
       if (!req.files || req.files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
-      const uploadPromises = req.files.map(async (file) => {
+      const uploadPromises = req.files.map(async (file, idx) => {
+        console.log(
+          `Processing file ${idx}: ${file.originalname} (${file.mimetype})`,
+        );
         // Compress the image
-        const compressed = await compressImage(file.buffer, file.mimetype);
+        let compressed;
+        try {
+          compressed = await compressImage(file.buffer, file.mimetype);
+          console.log(`File ${idx} compressed successfully`);
+        } catch (compErr) {
+          console.error(`Compression failed for file ${idx}:`, compErr);
+          // Fallback to original buffer if compression fails
+          compressed = file.buffer;
+        }
 
-        // Upload compressed buffer to Cloudinary using upload_stream
+        // Upload to Cloudinary
         return new Promise((resolve, reject) => {
+          console.log(`Opening Cloudinary stream for file ${idx}...`);
           const stream = cloudinary.uploader.upload_stream(
             {
               folder: "pashmina_products",
@@ -98,8 +113,15 @@ router.post(
               format: "webp",
             },
             (error, result) => {
-              if (error) reject(error);
-              else resolve(result.secure_url);
+              if (error) {
+                console.error(`Cloudinary error for file ${idx}:`, error);
+                reject(error);
+              } else {
+                console.log(
+                  `File ${idx} uploaded to Cloudinary: ${result.secure_url}`,
+                );
+                resolve(result.secure_url);
+              }
             },
           );
           stream.end(compressed);
@@ -107,9 +129,10 @@ router.post(
       });
 
       const urls = await Promise.all(uploadPromises);
+      console.log("All files uploaded successfully:", urls);
       res.json({ urls });
     } catch (err) {
-      console.error("Compression/Upload Error:", err);
+      console.error("FATAL Upload Error:", err);
       res.status(500).json({ message: "Upload failed", error: err.message });
     }
   },
