@@ -48,8 +48,9 @@ const Shop = () => {
       return matchCategory && matchSearch;
     });
 
-    if (sortBy === "price-asc") result = [...result].sort((a, b) => a.sale_price - b.sale_price);
-    if (sortBy === "price-desc") result = [...result].sort((a, b) => b.sale_price - a.sale_price);
+    const getPrice = (p: any) => p.sale_price ?? p.base_price ?? 0;
+    if (sortBy === "price-asc") result = [...result].sort((a, b) => getPrice(a) - getPrice(b));
+    if (sortBy === "price-desc") result = [...result].sort((a, b) => getPrice(b) - getPrice(a));
     
     return result;
   }, [products, activeCategory, searchQuery, sortBy]);

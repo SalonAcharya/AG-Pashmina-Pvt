@@ -229,9 +229,10 @@ const updateOrderStatus = async (req, res) => {
     }
     const result = await client.query(query, params);
 
-    // ── Restore stock when order is cancelled (only if not already cancelled) ──
+    // ── Restore stock when order is cancelled, only from pending/processing ──
     const newStatus = result.rows[0].status;
-    if (newStatus === "cancelled" && previousStatus !== "cancelled") {
+    const restorableStatuses = ["pending", "processing"];
+    if (newStatus === "cancelled" && restorableStatuses.includes(previousStatus)) {
       await client.query(
         `UPDATE products p
          SET stock_quantity = p.stock_quantity + oi.quantity

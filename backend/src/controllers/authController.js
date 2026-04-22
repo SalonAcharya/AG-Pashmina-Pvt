@@ -254,6 +254,10 @@ const changePassword = async (req, res) => {
     );
     const user = userRes.rows[0];
 
+    if (!user.password_hash) {
+      return res.status(400).json({ message: "Your account uses Google sign-in and does not have a password to change." });
+    }
+
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch)
       return res.status(400).json({ message: "Current password is incorrect" });
