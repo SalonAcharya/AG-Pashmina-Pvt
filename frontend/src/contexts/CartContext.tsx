@@ -50,14 +50,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("ag_pashmina_wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // Clear cart on logout so it doesn't leak between different user accounts
+  // Clear cart only when a different user logs in (not on every logout)
   React.useEffect(() => {
-    const handleLogout = () => {
+    const handleUserChanged = () => {
       setItems([]);
       localStorage.removeItem("ag_pashmina_cart");
     };
-    window.addEventListener("ag_logout", handleLogout);
-    return () => window.removeEventListener("ag_logout", handleLogout);
+    window.addEventListener("ag_user_changed", handleUserChanged);
+    return () => window.removeEventListener("ag_user_changed", handleUserChanged);
   }, []);
 
   const addItem = useCallback((product: Product, quantity = 1) => {

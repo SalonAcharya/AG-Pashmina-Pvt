@@ -37,6 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (userData: User, token: string, redirectTo?: string) => {
+    // If a different user is logging in, dispatch event so cart can be cleared
+    const prevUserId = localStorage.getItem("ag_last_user_id");
+    if (prevUserId && prevUserId !== String(userData.id)) {
+      window.dispatchEvent(new Event("ag_user_changed"));
+    }
+    localStorage.setItem("ag_last_user_id", String(userData.id));
+
     setUser(userData);
     setToken(token);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -64,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    window.dispatchEvent(new Event("ag_logout"));
     navigate("/login");
   };
 
