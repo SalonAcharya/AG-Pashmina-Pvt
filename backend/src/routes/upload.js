@@ -28,40 +28,23 @@ const upload = multer({
 
 // Helper: compress image buffer using sharp, targeting ~2MB max output
 async function compressImage(buffer, mimetype) {
-  const MAX_OUTPUT_BYTES = 2 * 1024 * 1024; // 2 MB target
+  const MAX_OUTPUT_BYTES = 500 * 1024; // 500 KB hard ceiling
 
-  let sharpInstance = sharp(buffer).resize({
-    width: 1500,
-    height: 1500,
-    fit: "inside",
-    withoutEnlargement: true,
-  });
+  if (mimetype === "image/gif") return buffer;
 
-  // Pick output format
-  const isGif = mimetype === "image/gif";
-  let quality = 80;
+  let quality = 72; // start at 72% — within the 65-75% sweet spot
+  let outputBuffer = await sharp(buffer)
+    .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true })
+    .webp({ quality })
+    .toBuffer();
 
-  let outputBuffer;
-  if (isGif) {
-    // GIF: just return as-is (sharp GIF support is limited)
-    outputBuffer = buffer;
-  } else {
-    // Convert everything to WebP (smaller + better quality than JPEG/PNG)
-    outputBuffer = await sharpInstance.webp({ quality }).toBuffer();
-
-    // If still too large, reduce quality further
-    while (outputBuffer.length > MAX_OUTPUT_BYTES && quality > 20) {
-      quality -= 10;
-      outputBuffer = await sharp(buffer)
-        .resize({
-          width: 1500,
-          height: 1500,
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .webp({ quality })
-        .toBuffer();
-    }
+  // Step quality down if still over ceiling, but never go below 50%
+  while (outputBuffer.length > MAX_OUTPUT_BYTES && quality > 50) {
+    quality -= 8;
+    outputBuffer = await sharp(buffer)
+      .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true })
+      .webp({ quality })
+      .toBuffer();
   }
 
   return outputBuffer;

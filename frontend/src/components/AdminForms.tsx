@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Plus, X } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
+import { compressImage, formatBytes } from "@/lib/imageUtils";
 
 export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, editData?: any, onCancel?: () => void }) => {
   const [name, setName] = useState(editData?.name || "");
@@ -17,14 +18,17 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
   const uploadImage = async () => {
     if (!imageFile) return imageUrl;
     setUploading(true);
-    const formData = new FormData();
-    formData.append("images", imageFile);
     try {
+      const compressed = await compressImage(imageFile, "thumbnail");
+      toast.info(`Uploading image (${formatBytes(compressed.size)})…`, { duration: 2000 });
+      const formData = new FormData();
+      formData.append("images", compressed);
       const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
+      if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       return data.urls[0];
     } catch (err) { toast.error("Image upload failed"); return null; }
@@ -97,13 +101,16 @@ export const BlogForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, edi
     setUploading(true);
     let finalImageUrl = form.featured_image;
     if (imageFile) {
+      const compressed = await compressImage(imageFile, "product");
+      toast.info(`Uploading image (${formatBytes(compressed.size)})…`, { duration: 2000 });
       const formData = new FormData();
-      formData.append("images", imageFile);
+      formData.append("images", compressed);
       const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
+      if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       finalImageUrl = data.urls[0];
     }
@@ -195,17 +202,18 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
   const uploadImages = async () => {
     if (imageFiles.length === 0) return [];
     setUploading(true);
-    const formData = new FormData();
-    imageFiles.forEach(file => formData.append("images", file));
-
     try {
+      const compressed = await Promise.all(imageFiles.map(f => compressImage(f, "product")));
+      const totalKB = Math.round(compressed.reduce((s, f) => s + f.size, 0) / 1024);
+      toast.info(`Uploading ${compressed.length} image(s) (${totalKB} KB total)…`, { duration: 2500 });
+      const formData = new FormData();
+      compressed.forEach(file => formData.append("images", file));
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       return data.urls;

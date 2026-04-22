@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 import { API_BASE_URL } from "@/lib/api";
+import { compressImage } from "@/lib/imageUtils";
 
 const Checkout = () => {
   const { items, clearCart } = useCart();
@@ -64,8 +65,9 @@ const Checkout = () => {
     try {
       let uploadedProofUrl = null;
       if (paymentMethod === 'qr' && paymentProof) {
+        const compressed = await compressImage(paymentProof, "proof");
         const formData = new FormData();
-        formData.append("images", paymentProof);
+        formData.append("images", compressed);
         const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
