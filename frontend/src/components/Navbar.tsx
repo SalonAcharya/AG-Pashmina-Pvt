@@ -122,20 +122,12 @@ const Navbar = () => {
                   )}
                   
                   {(user?.order_count ?? 0) > 0 && (
-                    <>
-                      <Link
-                        to="/track-order"
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
-                      >
-                        <Search size={14} /> Track Order
-                      </Link>
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
-                      >
-                        <OrdersIcon size={14} /> My Orders
-                      </Link>
-                    </>
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
+                    >
+                      <OrdersIcon size={14} /> My Orders
+                    </Link>
                   )}
                   
                   {user?.hasPassword !== false && (
@@ -199,14 +191,9 @@ const Navbar = () => {
                       </Link>
                     )}
                     {(user?.order_count ?? 0) > 0 && (
-                      <>
-                        <Link to="/track-order" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
-                          <Search size={16} /> Track Order
-                        </Link>
-                        <Link to="/dashboard" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
-                          <OrdersIcon size={16} /> My Orders
-                        </Link>
-                      </>
+                      <Link to="/dashboard" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">
+                        <OrdersIcon size={16} /> My Orders
+                      </Link>
                     )}
                     {user?.hasPassword !== false && (
                       <Link to="/change-password" className="font-body text-sm tracking-[0.15em] uppercase text-foreground hover:text-accent flex items-center gap-3">

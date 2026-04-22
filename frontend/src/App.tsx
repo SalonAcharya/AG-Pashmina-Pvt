@@ -36,7 +36,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
 import MyDashboard from "./pages/MyDashboard";
-import TrackOrder from "./pages/TrackOrder";
 
 const queryClient = new QueryClient();
 
@@ -70,7 +69,6 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/change-password" element={<ChangePassword />} />
               <Route path="/dashboard" element={<MyDashboard />} />
-              <Route path="/track-order" element={<TrackOrder />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />

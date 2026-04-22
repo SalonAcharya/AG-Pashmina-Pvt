@@ -255,35 +255,9 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-const trackOrder = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await db.query(
-      "SELECT id, status, created_at, total_amount, shipping_address FROM orders WHERE id = $1",
-      [id],
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-    const order = result.rows[0];
-
-    // Optionally include item count
-    const itemsRes = await db.query(
-      "SELECT COUNT(*) FROM order_items WHERE order_id = $1",
-      [id],
-    );
-    order.items = new Array(parseInt(itemsRes.rows[0].count)).fill({});
-
-    res.json(order);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
 module.exports = {
   createOrder,
   getOrders,
   updateOrderStatus,
   deleteOrder,
-  trackOrder,
 };

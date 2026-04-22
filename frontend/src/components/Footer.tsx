@@ -77,7 +77,6 @@ const Footer = () => {
                   { to: "/about", label: "Our Story" },
                   { to: "/education", label: "The Craft" },
                   { to: "/contact", label: "Contact" },
-                  ...(user?.order_count && user.order_count > 0 ? [{ to: "/track-order", label: "Track Order" }] : []),
                 ].map((link) => (
                   <Link
                     key={link.to}
