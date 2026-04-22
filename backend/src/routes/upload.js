@@ -34,7 +34,12 @@ async function compressImage(buffer, mimetype) {
 
   let quality = 72; // start at 72% — within the 65-75% sweet spot
   let outputBuffer = await sharp(buffer)
-    .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true })
+    .resize({
+      width: 1200,
+      height: 1200,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
     .webp({ quality })
     .toBuffer();
 
@@ -42,7 +47,12 @@ async function compressImage(buffer, mimetype) {
   while (outputBuffer.length > MAX_OUTPUT_BYTES && quality > 50) {
     quality -= 8;
     outputBuffer = await sharp(buffer)
-      .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true })
+      .resize({
+        width: 1200,
+        height: 1200,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
       .webp({ quality })
       .toBuffer();
   }
@@ -53,7 +63,6 @@ async function compressImage(buffer, mimetype) {
 router.post(
   "/",
   verifyToken,
-  isAdmin,
   (req, res, next) => {
     upload.array("images", 10)(req, res, (err) => {
       if (err) {

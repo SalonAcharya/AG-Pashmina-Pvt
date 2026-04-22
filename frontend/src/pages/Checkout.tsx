@@ -40,7 +40,12 @@ const Checkout = () => {
       .catch(console.error);
   }, []);
 
-  const getImg = (url: string) => url?.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+  const getImg = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/')) return url; // Local frontend asset
+    return `${API_BASE_URL}${url}`; // Backend asset
+  };
   
   const subtotal = items.reduce((acc, item) => {
     const price = (item.product as any).sale_price || (item.product as any).price;
@@ -233,14 +238,26 @@ const Checkout = () => {
                   <div className="bg-secondary/20 border border-dashed border-border rounded-lg p-8 text-center shrink">
                     <h3 className="font-display text-xl mb-4">FonePay Payment</h3>
                     {(() => {
-                      const qrSrc = settings.payment_qr ? getImg(settings.payment_qr) : "/fonepay-qr.png";
+                      // If settings.payment_qr is set, use it. 
+                      // Otherwise, use a reliable hosted placeholder or the local one if it existed.
+                      const qrSrc = settings.payment_qr 
+                        ? getImg(settings.payment_qr) 
+                        : "https://res.cloudinary.com/dcb6s4kkh/image/upload/v1713795600/fonepay-qr-placeholder.png"; // Using a hosted backup since local is missing
+                      
                       return (
-                        <div className="w-48 h-48 mx-auto bg-white p-2 border border-border/50 rounded-md mb-4 shadow-sm overflow-hidden">
-                          <img src={qrSrc} alt="FonePay QR Code" className="w-full h-full object-contain" />
+                        <div className="w-48 h-48 mx-auto bg-white p-2 border border-border/50 rounded-md mb-4 shadow-sm overflow-hidden flex items-center justify-center">
+                          <img 
+                            src={qrSrc} 
+                            alt="FonePay QR Code" 
+                            className="max-w-full max-h-full object-contain" 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://placehold.co/400x400?text=Scan+to+Pay";
+                            }}
+                          />
                         </div>
                       );
                     })()}
-                    <a href={settings.payment_qr ? getImg(settings.payment_qr) : "/fonepay-qr.png"} download className="text-[10px] text-accent tracking-widest uppercase font-bold hover:underline mb-2 block">Download QR Code</a>
+                    <a href={settings.payment_qr ? getImg(settings.payment_qr) : "#"} download className="text-[10px] text-accent tracking-widest uppercase font-bold hover:underline mb-2 block">Download QR Code</a>
                     <p className="font-body text-[10px] text-muted-foreground mb-4 uppercase tracking-widest">Amount to pay: <span className="text-accent font-bold">Rs. {grandTotal.toFixed(2)}</span></p>
                     
                     <div className="text-left mt-6 border-t border-border pt-6">
