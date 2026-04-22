@@ -8,7 +8,10 @@ import { API_BASE_URL } from "@/lib/api";
 const Cart = () => {
   const { items, removeItem, updateQuantity } = useCart();
 
-  const getImg = (url: string) => url?.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+  const getImg = (url: string | undefined) => {
+    if (!url) return "/placeholder-product.jpg";
+    return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+  };
   
   // Recalculate total price based on sale_price if available
   const totalPrice = items.reduce((acc, item) => {
