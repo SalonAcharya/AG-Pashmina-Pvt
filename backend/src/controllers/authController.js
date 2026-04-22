@@ -54,6 +54,12 @@ const login = async (req, res) => {
       });
     }
 
+    const orderCountRes = await db.query(
+      "SELECT COUNT(*) FROM orders WHERE user_id = $1",
+      [user.id],
+    );
+    const orderCount = parseInt(orderCountRes.rows[0].count);
+
     const token = jwt.sign(
       { id: user.id, role_id: user.role_id },
       process.env.JWT_SECRET,
@@ -67,6 +73,7 @@ const login = async (req, res) => {
         email: user.email,
         role_id: user.role_id,
         hasPassword: true,
+        order_count: orderCount,
       },
     });
   } catch (err) {
@@ -208,11 +215,9 @@ const resetPassword = async (req, res) => {
     if (user.password_hash) {
       const isSame = await bcrypt.compare(newPassword, user.password_hash);
       if (isSame) {
-        return res
-          .status(400)
-          .json({
-            message: "New password cannot be the same as your old password",
-          });
+        return res.status(400).json({
+          message: "New password cannot be the same as your old password",
+        });
       }
     }
 
@@ -254,11 +259,9 @@ const changePassword = async (req, res) => {
       return res.status(400).json({ message: "Current password is incorrect" });
 
     if (currentPassword === newPassword) {
-      return res
-        .status(400)
-        .json({
-          message: "New password cannot be the same as your current password",
-        });
+      return res.status(400).json({
+        message: "New password cannot be the same as your current password",
+      });
     }
 
     const salt = await bcrypt.genSalt(10);

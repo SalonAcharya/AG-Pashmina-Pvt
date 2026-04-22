@@ -156,7 +156,7 @@ const getOrders = async (req, res) => {
       "SELECT o.*, u.name as user_name FROM orders o JOIN users u ON o.user_id = u.id";
     let params = [];
 
-    if (req.user.role_id !== 1) {
+    if (req.user.role_id !== 1 || req.query.mine === "true") {
       query += " WHERE o.user_id = $1";
       params.push(req.user.id);
     }
