@@ -37,12 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (userData: User, token: string, redirectTo?: string) => {
-    // If a different user is logging in, dispatch event so cart can be cleared
-    const prevUserId = localStorage.getItem("ag_last_user_id");
-    if (prevUserId && prevUserId !== String(userData.id)) {
-      window.dispatchEvent(new Event("ag_user_changed"));
-    }
-    localStorage.setItem("ag_last_user_id", String(userData.id));
+    // Notify CartContext to restore this user's cart and merge any guest items
+    window.dispatchEvent(new CustomEvent("ag_user_login", { detail: { userId: userData.id } }));
 
     setUser(userData);
     setToken(token);
@@ -67,6 +63,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    // Notify CartContext to save this user's cart before clearing
+    if (user) {
+      window.dispatchEvent(new CustomEvent("ag_user_logout", { detail: { userId: user.id } }));
+    }
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");

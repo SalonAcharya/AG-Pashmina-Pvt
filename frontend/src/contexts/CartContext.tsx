@@ -50,14 +50,57 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("ag_pashmina_wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // Clear cart only when a different user logs in (not on every logout)
+  // ── Per-user cart logic ────────────────────────────────────────────────────
+  // On LOGIN: restore this user's saved cart and merge any guest items on top.
+  // On LOGOUT: save current cart to a user-specific key then clear active cart.
   React.useEffect(() => {
-    const handleUserChanged = () => {
-      setItems([]);
+    const handleLogin = (e: Event) => {
+      const { userId } = (e as CustomEvent).detail as { userId: number };
+      const userKey = `ag_pashmina_cart_user_${userId}`;
+
+      // Load this user's previously saved cart (may be empty for new users)
+      let userItems: CartItem[] = [];
+      try {
+        const saved = localStorage.getItem(userKey);
+        if (saved) userItems = JSON.parse(saved);
+      } catch { /* ignore */ }
+
+      // Current items in state are the guest additions; merge them in
+      setItems((guestItems) => {
+        const merged = [...userItems];
+        guestItems.forEach((guestItem) => {
+          const existing = merged.find((i) => i.product.id === guestItem.product.id);
+          if (existing) {
+            existing.quantity += guestItem.quantity;
+          } else {
+            merged.push(guestItem);
+          }
+        });
+        return merged;
+      });
+
+      // User cart has been merged into active state — remove the saved copy
+      localStorage.removeItem(userKey);
+    };
+
+    const handleLogout = (e: Event) => {
+      const { userId } = (e as CustomEvent).detail as { userId: number };
+      const userKey = `ag_pashmina_cart_user_${userId}`;
+
+      // Snapshot current cart into user-specific storage
+      setItems((current) => {
+        localStorage.setItem(userKey, JSON.stringify(current));
+        return []; // clear active cart so next visitor/user starts fresh
+      });
       localStorage.removeItem("ag_pashmina_cart");
     };
-    window.addEventListener("ag_user_changed", handleUserChanged);
-    return () => window.removeEventListener("ag_user_changed", handleUserChanged);
+
+    window.addEventListener("ag_user_login", handleLogin);
+    window.addEventListener("ag_user_logout", handleLogout);
+    return () => {
+      window.removeEventListener("ag_user_login", handleLogin);
+      window.removeEventListener("ag_user_logout", handleLogout);
+    };
   }, []);
 
   const addItem = useCallback((product: Product, quantity = 1) => {
