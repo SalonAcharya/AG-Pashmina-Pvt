@@ -3,6 +3,7 @@ import { FadeInUp } from "@/components/FadeInUp";
 import { Loader2 } from "lucide-react";
 
 import { API_BASE_URL } from "@/lib/api";
+import SEO from "@/components/SEO";
 
 const Education = () => {
   const [blogs, setBlogs] = useState([]);
@@ -27,6 +28,10 @@ const Education = () => {
 
   return (
     <div className="min-h-screen pt-24">
+      <SEO 
+        title="Authentic Pashmina Education | Know Your Fiber"
+        description="Learn about the origins, character, and craftsmanship of the world's finest Himalayan fibers. From high-altitude Cashmere to robust Yak wool."
+      />
       <div className="container mx-auto px-6 lg:px-12">
         <FadeInUp>
           <div className="text-center mb-20 max-w-2xl mx-auto">

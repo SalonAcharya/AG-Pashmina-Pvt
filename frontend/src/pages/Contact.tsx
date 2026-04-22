@@ -4,6 +4,7 @@ import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
+import SEO from "@/components/SEO";
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -33,6 +34,10 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-24">
+      <SEO 
+        title="Contact AG Pashmina | Visit Us in Thamel"
+        description="Have questions about our Himalayan textiles? Contact AG Pashmina in Thamel, Kathmandu, or send us a message online. We're here to help."
+      />
       <div className="container mx-auto px-6 lg:px-12">
         <FadeInUp>
           <div className="text-center mb-16">

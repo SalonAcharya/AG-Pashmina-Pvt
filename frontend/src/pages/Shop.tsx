@@ -4,6 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import { FadeInUp } from "@/components/FadeInUp";
 import { Search, ChevronDown, Loader2 } from "lucide-react";
 import fabricTexture from "@/assets/fabric-texture-hero.jpg";
+import SEO from "@/components/SEO";
 
 import { API_BASE_URL } from "@/lib/api";
 
@@ -65,9 +66,17 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Shop Himalayan Luxury"
+        description="Explore our curated collection of handcrafted Pashmina, Cashmere, and Yak wool shawls. Each piece is a masterpiece of Himalayan heritage."
+      />
       <section className="relative h-[40vh] min-h-[280px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={fabricTexture} className="w-full h-full object-cover" />
+          <img 
+            src={fabricTexture} 
+            alt="Intricate Fabric Texture of AG Pashmina Textiles" 
+            className="w-full h-full object-cover" 
+          />
           <div className="absolute inset-0 bg-foreground/30" />
         </div>
         <div className="relative z-10 text-center"><p className="text-xs tracking-widest uppercase text-accent-foreground/70 mb-3">Our Collection</p><h1 className="font-display text-6xl text-accent-foreground">Shop</h1></div>

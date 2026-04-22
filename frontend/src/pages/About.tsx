@@ -3,6 +3,7 @@ import artisanWeaving from "@/assets/artisan-weaving.jpg";
 import cashmereTexture from "@/assets/cashmere-texture.jpg";
 import yakWool from "@/assets/yak-wool.jpg";
 import founderPhoto from "@/assets/founder-saroj.jpg";
+import SEO from "@/components/SEO";
 
 const milestones = [
   { year: "2010", label: "Started in the textile industry" },
@@ -14,10 +15,18 @@ const milestones = [
 const About = () => {
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Our Story & Himalayan Heritage"
+        description="Discover the legacy of AG Pashmina. Three generations of handcrafted Himalayan textiles, supporting Nepali artisans and sourcing the finest sustainable cashmere."
+      />
       {/* Hero */}
       <section className="relative h-[55vh] min-h-[350px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={artisanWeaving} alt="Artisan weaving on a traditional loom" className="w-full h-full object-cover" />
+          <img 
+            src={artisanWeaving} 
+            alt="Nepali Artisan weaving Pashmina on a traditional wooden loom" 
+            className="w-full h-full object-cover" 
+          />
           <div className="absolute inset-0 bg-foreground/50" />
         </div>
         <div className="relative z-10 text-center px-6">
@@ -57,7 +66,12 @@ const About = () => {
           <FadeInUp>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               <div className="aspect-[3/4] max-w-md mx-auto lg:mx-0 rounded-lg overflow-hidden shadow-card">
-                <img src={founderPhoto} alt="Saroj Acharya — Founder & CEO" className="w-full h-full object-cover" loading="lazy" />
+                <img 
+                  src={founderPhoto} 
+                  alt="Saroj Acharya — Founder & CEO of AG Pashmina" 
+                  className="w-full h-full object-cover" 
+                  loading="lazy" 
+                />
               </div>
               <div className="border-l-2 border-accent/30 pl-8">
                 <p className="font-body text-xs tracking-[0.3em] uppercase text-accent mb-4">Meet the Founder</p>
@@ -115,10 +129,20 @@ const About = () => {
             <FadeInUp>
               <div className="grid grid-cols-2 gap-4">
                 <div className="aspect-square rounded-lg overflow-hidden">
-                  <img src={cashmereTexture} alt="Cashmere texture" className="w-full h-full object-cover" loading="lazy" />
+                  <img 
+                    src={cashmereTexture} 
+                    alt="Close up of soft Himalayan Cashmere texture" 
+                    className="w-full h-full object-cover" 
+                    loading="lazy" 
+                  />
                 </div>
                 <div className="aspect-square rounded-lg overflow-hidden mt-8">
-                  <img src={yakWool} alt="Yak wool" className="w-full h-full object-cover" loading="lazy" />
+                  <img 
+                    src={yakWool} 
+                    alt="Authentic Himalayan Yak Wool fibers" 
+                    className="w-full h-full object-cover" 
+                    loading="lazy" 
+                  />
                 </div>
               </div>
             </FadeInUp>

@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 import { API_BASE_URL } from "@/lib/api";
+import SEO from "@/components/SEO";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -124,8 +125,35 @@ const ProductDetail = () => {
   const images = product.images || [product.image];
   const isWished = wishlist.includes(product.id);
 
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": images.map((img: string) => getImg(img)),
+    "description": product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "AG Pashmina"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `${window.location.origin}/product/${product.id}`,
+      "priceCurrency": "NPR",
+      "price": product.sale_price,
+      "availability": product.stock_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 bg-background">
+      <SEO 
+        title={product.name}
+        description={`${product.name} - ${product.description.substring(0, 160)}...`}
+        image={getImg(images[0])}
+        url={window.location.href}
+        schema={productSchema}
+      />
       <div className="container mx-auto px-6 lg:px-12">
         {/* Breadcrumb */}
         <FadeInUp>

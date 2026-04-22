@@ -5,6 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import { Star, Shield, Gem, Package, ChevronRight, ChevronDown } from "lucide-react";
 import heroBright from "@/assets/hero-bright.jpg";
 import heroMountains from "@/assets/hero-mountains.jpg";
+import SEO from "@/components/SEO";
 
 const API_BASE_URL = "https://ag-pashmina-pvt.onrender.com";
 
@@ -32,12 +33,39 @@ const Index = () => {
 
   const getImg = (url: string) => url?.startsWith('http') ? url : `${API_BASE_URL}${url}`;
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "AG Pashmina",
+    "url": "https://www.agpashmina.com.np",
+    "logo": "https://www.agpashmina.com.np/logo.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+977-1-4700000",
+      "contactType": "customer service"
+    },
+    "sameAs": [
+      "https://www.facebook.com/agpashmina",
+      "https://www.instagram.com/agpashmina"
+    ]
+  };
+
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="AG Pashmina | Authentic Himalayan Cashmere & Pashmina from Nepal"
+        description="Luxury Pashmina, Cashmere, and Yak wool shawls handcrafted by master artisans in Nepal. Experience the warmth and heritage of the Himalayas."
+        schema={organizationSchema}
+      />
+      
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroBright} alt="Hero" className="w-full h-full object-cover animate-kenburns" />
+          <img 
+            src={heroBright} 
+            alt="Handcrafted Luxury AG Pashmina Collection in Nepal" 
+            className="w-full h-full object-cover animate-kenburns" 
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-foreground/20 via-foreground/10 to-foreground/40" />
         </div>
         <div className="relative z-10 text-center px-6 max-w-3xl">
