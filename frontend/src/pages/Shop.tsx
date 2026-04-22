@@ -5,7 +5,7 @@ import { FadeInUp } from "@/components/FadeInUp";
 import { Search, ChevronDown, Loader2 } from "lucide-react";
 import fabricTexture from "@/assets/fabric-texture-hero.jpg";
 
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "@/config";
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();

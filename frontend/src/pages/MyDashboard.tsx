@@ -114,7 +114,7 @@ const MyDashboard = () => {
   const fetchOrders = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/orders`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders?mine=true`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch orders");
@@ -163,15 +163,17 @@ const MyDashboard = () => {
                   <span className="truncate">{user?.email}</span>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
-                onClick={() => navigate("/change-password")}
-              >
-                <KeyRound size={12} />
-                Change Password
-              </Button>
+              {user?.hasPassword !== false && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                  onClick={() => navigate("/change-password")}
+                >
+                  <KeyRound size={12} />
+                  Change Password
+                </Button>
+              )}
             </div>
 
             {/* ── Stats ── */}

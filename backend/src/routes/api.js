@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const db = require("../config/db");
 const passport = require("../config/passport");
 const jwt = require("jsonwebtoken");
 const authController = require("../controllers/authController");
@@ -34,7 +35,7 @@ router.get(
     failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=google_failed`,
     session: false,
   }),
-  (req, res) => {
+  async (req, res) => {
     const user = req.user;
     if (!user) {
       // This happens if authentication fails but passport doesn't redirect automatically
@@ -55,6 +56,12 @@ router.get(
     // For this, we need to ensure passport returned the whole user object or just query it here
     const hasPassword = user.password_hash ? true : false;
 
+    const orderCountRes = await db.query(
+      "SELECT COUNT(*) FROM orders WHERE user_id = $1",
+      [user.id],
+    );
+    const orderCount = parseInt(orderCountRes.rows[0].count);
+
     const userEncoded = encodeURIComponent(
       JSON.stringify({
         id: user.id,
@@ -62,6 +69,7 @@ router.get(
         email: user.email,
         role_id: user.role_id,
         hasPassword: hasPassword,
+        order_count: orderCount,
       }),
     );
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";

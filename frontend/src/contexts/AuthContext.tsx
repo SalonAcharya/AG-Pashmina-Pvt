@@ -7,6 +7,7 @@ interface User {
   email: string;
   role_id: number;
   hasPassword?: boolean;
+  order_count?: number;
 }
 
 interface AuthContextType {
