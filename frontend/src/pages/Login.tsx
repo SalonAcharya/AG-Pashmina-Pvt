@@ -49,7 +49,8 @@ const Login = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        login(data.user, data.token);
+        const redirectTo = searchParams.get("redirect") || undefined;
+        login(data.user, data.token, redirectTo);
         toast.success("Welcome back!");
       } else {
         toast.error(data.message || "Login failed");

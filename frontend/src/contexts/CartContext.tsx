@@ -50,6 +50,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("ag_pashmina_wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
+  // Clear cart on logout so it doesn't leak between different user accounts
+  React.useEffect(() => {
+    const handleLogout = () => {
+      setItems([]);
+      localStorage.removeItem("ag_pashmina_cart");
+    };
+    window.addEventListener("ag_logout", handleLogout);
+    return () => window.removeEventListener("ag_logout", handleLogout);
+  }, []);
+
   const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);

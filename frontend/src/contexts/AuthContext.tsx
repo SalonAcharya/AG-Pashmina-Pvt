@@ -13,7 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (userData: User, token: string) => void;
+  login: (userData: User, token: string, redirectTo?: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (userData: User, token: string) => {
+  const login = (userData: User, token: string, redirectTo?: string) => {
     setUser(userData);
     setToken(token);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -44,6 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (userData.role_id === 1) {
       navigate("/admin");
+    } else if (redirectTo) {
+      navigate(redirectTo);
     } else {
       navigate("/");
     }
@@ -62,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    window.dispatchEvent(new Event("ag_logout"));
     navigate("/login");
   };
 

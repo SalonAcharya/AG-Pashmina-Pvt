@@ -153,7 +153,7 @@ const Checkout = () => {
               To ensure the security of your Himalayan heirlooms, please sign in or create an account to proceed with your acquisition.
             </p>
             <div className="space-y-4">
-              <Link to="/login" className="block">
+              <Link to="/login?redirect=/checkout" className="block">
                 <button className="w-full py-4 bg-accent text-accent-foreground font-body text-xs tracking-[0.2em] uppercase font-bold rounded-md hover:shadow-luxury transition-all">
                   Sign In
                 </button>
