@@ -22,10 +22,27 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// Helpers for per-user cart storage
+const getUserCartKey = (userId: number | string) => `ag_pashmina_cart_user_${userId}`;
+
+const getLoggedInUserId = (): number | null => {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    return user?.id ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // On mount: load cart for whoever is currently logged in (handles page refreshes)
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
-      const stored = localStorage.getItem("ag_pashmina_cart");
+      const userId = getLoggedInUserId();
+      if (!userId) return [];
+      const stored = localStorage.getItem(getUserCartKey(userId));
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -41,58 +58,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  // Sync to localStorage whenever they change
+  // Sync cart to the current user's localStorage key on every change
   React.useEffect(() => {
-    localStorage.setItem("ag_pashmina_cart", JSON.stringify(items));
+    const userId = getLoggedInUserId();
+    if (userId) {
+      localStorage.setItem(getUserCartKey(userId), JSON.stringify(items));
+    }
   }, [items]);
 
   React.useEffect(() => {
     localStorage.setItem("ag_pashmina_wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // ── Per-user cart logic ────────────────────────────────────────────────────
-  // On LOGIN: restore this user's saved cart and merge any guest items on top.
-  // On LOGOUT: save current cart to a user-specific key then clear active cart.
+  // ── Auth event listeners ────────────────────────────────────────────
   React.useEffect(() => {
+    // Login: load that user's saved cart
     const handleLogin = (e: Event) => {
       const { userId } = (e as CustomEvent).detail as { userId: number };
-      const userKey = `ag_pashmina_cart_user_${userId}`;
-
-      // Load this user's previously saved cart (may be empty for new users)
-      let userItems: CartItem[] = [];
       try {
-        const saved = localStorage.getItem(userKey);
-        if (saved) userItems = JSON.parse(saved);
-      } catch { /* ignore */ }
-
-      // Current items in state are the guest additions; merge them in
-      setItems((guestItems) => {
-        const merged = [...userItems];
-        guestItems.forEach((guestItem) => {
-          const existing = merged.find((i) => i.product.id === guestItem.product.id);
-          if (existing) {
-            existing.quantity += guestItem.quantity;
-          } else {
-            merged.push(guestItem);
-          }
-        });
-        return merged;
-      });
-
-      // User cart has been merged into active state — remove the saved copy
-      localStorage.removeItem(userKey);
+        const stored = localStorage.getItem(getUserCartKey(userId));
+        setItems(stored ? JSON.parse(stored) : []);
+      } catch {
+        setItems([]);
+      }
     };
 
-    const handleLogout = (e: Event) => {
-      const { userId } = (e as CustomEvent).detail as { userId: number };
-      const userKey = `ag_pashmina_cart_user_${userId}`;
-
-      // Snapshot current cart into user-specific storage
-      setItems((current) => {
-        localStorage.setItem(userKey, JSON.stringify(current));
-        return []; // clear active cart so next visitor/user starts fresh
-      });
-      localStorage.removeItem("ag_pashmina_cart");
+    // Logout: clear active cart (already saved by the sync effect above)
+    const handleLogout = () => {
+      setItems([]);
     };
 
     window.addEventListener("ag_user_login", handleLogin);

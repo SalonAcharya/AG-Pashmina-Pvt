@@ -1,17 +1,21 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import { FadeInUp } from "@/components/FadeInUp";
 import { Heart, Minus, Plus, ChevronLeft, Star, Truck, RotateCcw, Shield, Loader2, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 import { API_BASE_URL } from "@/lib/api";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { addItem, wishlist, toggleWishlist } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
   const [product, setProduct] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);
@@ -257,7 +261,15 @@ const ProductDetail = () => {
                     <button onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="p-4 hover:text-accent transition-colors"><Plus size={14} /></button>
                   </div>
                   <button
-                    onClick={() => addItem(product, quantity)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.info("Please sign in to add items to your cart");
+                        navigate(`/login?redirect=/product/${id}`);
+                        return;
+                      }
+                      addItem(product, quantity);
+                      toast.success("Added to cart");
+                    }}
                     disabled={product.stock_quantity === 0}
                     className={`flex-1 px-8 py-4 font-body text-xs tracking-[0.2em] uppercase font-bold rounded-md transition-all duration-300 ${
                       product.stock_quantity === 0 

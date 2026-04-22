@@ -1,12 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Heart, Star } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 import { API_BASE_URL } from "@/lib/api";
 
 const ProductCard: React.FC<{ product: any }> = ({ product }) => {
   const { addItem, wishlist, toggleWishlist } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const isWished = wishlist.includes(product.id);
 
   const getImgUrl = () => {
@@ -65,7 +69,15 @@ const ProductCard: React.FC<{ product: any }> = ({ product }) => {
         {/* Quick Add */}
         <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 z-10">
           <button
-            onClick={() => addItem(product)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                toast.info("Please sign in to add items to your cart");
+                navigate("/login?redirect=/shop");
+                return;
+              }
+              addItem(product);
+              toast.success("Added to cart");
+            }}
             disabled={product.stock_quantity === 0}
             className={`w-full py-2.5 font-body text-[10px] tracking-[0.15em] uppercase font-semibold rounded-md transition-colors ${
               product.stock_quantity === 0 
