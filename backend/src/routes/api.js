@@ -166,6 +166,5 @@ router.patch(
   isAdmin,
   orderController.updateOrderStatus,
 );
-router.delete("/orders/:id", verifyToken, isAdmin, orderController.deleteOrder);
 
 module.exports = router;

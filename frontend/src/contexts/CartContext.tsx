@@ -58,8 +58,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
+  const isLoggingOut = React.useRef(false);
+
   // Sync cart to the current user's localStorage key on every change
   React.useEffect(() => {
+    // If we're in the middle of clearing the cart for logout, don't overwrite the saved cart
+    if (isLoggingOut.current) return;
+
     const userId = getLoggedInUserId();
     if (userId) {
       localStorage.setItem(getUserCartKey(userId), JSON.stringify(items));
@@ -74,6 +79,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   React.useEffect(() => {
     // Login: load that user's saved cart
     const handleLogin = (e: Event) => {
+      isLoggingOut.current = false;
       const { userId } = (e as CustomEvent).detail as { userId: number };
       try {
         const stored = localStorage.getItem(getUserCartKey(userId));
@@ -83,8 +89,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Logout: clear active cart (already saved by the sync effect above)
+    // Logout: clear active cart WITHOUT triggering the overwrite in the effect above
     const handleLogout = () => {
+      isLoggingOut.current = true;
       setItems([]);
     };
 

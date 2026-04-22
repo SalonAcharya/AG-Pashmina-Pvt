@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 // ✅ Allowed origins (dev + production)
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:8080",
   "https://agpashmina.com.np",
   "https://www.agpashmina.com.np",
   "https://ag-pashmina-pvt-ltd.vercel.app",
@@ -33,7 +34,7 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());
@@ -45,10 +46,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,      // required for HTTPS (Render)
-      sameSite: "none",  // required for cross-origin (Vercel ↔ Render)
+      secure: true, // required for HTTPS (Render)
+      sameSite: "none", // required for cross-origin (Vercel ↔ Render)
     },
-  })
+  }),
 );
 
 // Passport middleware

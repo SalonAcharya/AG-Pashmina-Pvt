@@ -259,5 +259,4 @@ module.exports = {
   createOrder,
   getOrders,
   updateOrderStatus,
-  deleteOrder,
 };
