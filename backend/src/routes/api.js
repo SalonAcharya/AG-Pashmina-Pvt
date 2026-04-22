@@ -91,6 +91,9 @@ router.use("/upload", uploadRoutes);
 router.post("/orders", verifyToken, orderController.createOrder);
 router.get("/orders", verifyToken, orderController.getOrders);
 
+// Public Order Tracking
+router.get("/orders/:id/track", orderController.trackOrder);
+
 router.get("/blog", extraController.getBlogPosts);
 router.post("/blog", verifyToken, isAdmin, extraController.createBlogPost);
 router.put("/blog/:id", verifyToken, isAdmin, extraController.updateBlogPost);

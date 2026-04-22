@@ -8,10 +8,52 @@ import {
   Loader2, Package, List, ShoppingBag, MessageSquare,
   BookOpen, Edit2, Trash2, Settings as SettingsIcon,
   ChevronDown, ChevronRight, AlertTriangle, CheckCircle, XCircle,
-  Bell, X as XIcon
+  Bell, X as XIcon, Clock, RotateCcw, Truck
 } from "lucide-react";
 import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
 import { API_BASE_URL } from "@/lib/api";
+
+type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
+  pending: { label: "Pending", color: "text-yellow-500 bg-yellow-500/10 border-yellow-400/30", icon: Clock },
+  processing: { label: "Processing", color: "text-blue-500 bg-blue-500/10 border-blue-400/30", icon: RotateCcw },
+  shipped: { label: "Shipped", color: "text-purple-500 bg-purple-500/10 border-purple-400/30", icon: Truck },
+  delivered: { label: "Delivered", color: "text-green-500 bg-green-500/10 border-green-400/30", icon: CheckCircle },
+  cancelled: { label: "Cancelled", color: "text-red-500 bg-red-500/10 border-red-400/30", icon: XCircle },
+};
+
+const StepTracker = ({ status }: { status: OrderStatus }) => {
+  const steps: OrderStatus[] = ["pending", "processing", "shipped", "delivered"];
+  const isCancelled = status === "cancelled";
+  const currentIndex = isCancelled ? -1 : steps.indexOf(status);
+
+  return (
+    <div className="flex items-center gap-0 mt-3 max-w-md">
+      {steps.map((step, i) => {
+        const cfg = STATUS_CONFIG[step];
+        const Icon = cfg.icon;
+        const isActive = !isCancelled && i <= currentIndex;
+        const isCurrentStep = !isCancelled && i === currentIndex;
+        return (
+          <div key={step} className="flex items-center flex-1">
+            <div className={`flex flex-col items-center gap-1 flex-1`}>
+              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${isActive ? "border-accent bg-accent/20 text-accent" : "border-border text-muted-foreground"} ${isCurrentStep ? "ring-2 ring-accent/30 ring-offset-2 ring-offset-background" : ""}`}>
+                <Icon size={12} />
+              </div>
+              <span className={`text-[8px] uppercase font-bold tracking-wider hidden sm:block ${isActive ? "text-accent" : "text-muted-foreground"}`}>
+                {cfg.label}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`h-0.5 flex-1 mx-1 mb-4 rounded ${isActive && i < currentIndex ? "bg-accent" : "bg-border"}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 // ── Stock badge helper ────────────────────────────────────────────────────────
 const StockBadge = ({ qty, threshold }: { qty: number; threshold: number }) => {
@@ -704,6 +746,12 @@ const AdminDashboard = () => {
                           {expandedOrder === o.id && o.items && o.items.length > 0 && (
                             <tr key={`${o.id}-items`} className="bg-muted/10 border-b">
                               <td colSpan={8} className="px-8 py-4">
+                                <div className="mb-6 bg-muted/20 p-4 rounded-lg border border-border/50">
+                                  <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-3">
+                                    Current Status Progress
+                                  </p>
+                                  <StepTracker status={o.status as OrderStatus} />
+                                </div>
                                 <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted-foreground mb-3">
                                   Order Items ({o.items.length})
                                 </p>

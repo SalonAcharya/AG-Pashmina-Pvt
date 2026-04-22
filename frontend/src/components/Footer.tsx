@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { API_BASE_URL } from "@/lib/api";
 
 const Footer = () => {
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -75,6 +77,7 @@ const Footer = () => {
                   { to: "/about", label: "Our Story" },
                   { to: "/education", label: "The Craft" },
                   { to: "/contact", label: "Contact" },
+                  ...(user?.order_count && user.order_count > 0 ? [{ to: "/track-order", label: "Track Order" }] : []),
                 ].map((link) => (
                   <Link
                     key={link.to}

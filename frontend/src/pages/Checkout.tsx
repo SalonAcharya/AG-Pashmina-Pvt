@@ -13,7 +13,7 @@ import { compressImage } from "@/lib/imageUtils";
 
 const Checkout = () => {
   const { items, clearCart } = useCart();
-  const { isAuthenticated, user, token } = useAuth();
+  const { isAuthenticated, user, token, incrementOrderCount } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -107,6 +107,7 @@ const Checkout = () => {
         throw new Error(errData.message || "Order creation failed");
       }
       toast.success("Order placed successfully!");
+      incrementOrderCount();
       clearCart();
       navigate("/");
     } catch (err: any) {

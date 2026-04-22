@@ -92,10 +92,6 @@ const Cart = () => {
                   <span className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Subtotal</span>
                   <span className="text-foreground font-bold">Rs. {totalPrice}</span>
                 </div>
-                <div className="flex justify-between font-body text-sm">
-                  <span className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Courier</span>
-                  <span className="text-accent font-bold uppercase text-[10px] tracking-tighter">Complimentary</span>
-                </div>
               </div>
               <div className="flex justify-between font-display text-xl mb-10">
                 <span className="font-light">Grand Total</span>

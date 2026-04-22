@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  incrementOrderCount: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +49,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const incrementOrderCount = () => {
+    if (user) {
+      const updatedUser = { ...user, order_count: (user.order_count ?? 0) + 1 };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -62,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       token, 
       login, 
       logout, 
+      incrementOrderCount,
       isAuthenticated: !!token,
       isAdmin: user?.role_id === 1 
     }}>
