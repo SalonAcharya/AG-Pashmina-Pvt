@@ -229,14 +229,15 @@ const Checkout = () => {
                 {paymentMethod === 'qr' && (
                   <div className="bg-secondary/20 border border-dashed border-border rounded-lg p-8 text-center shrink">
                     <h3 className="font-display text-xl mb-4">FonePay Payment</h3>
-                    {settings.payment_qr ? (
-                      <div className="w-48 h-48 mx-auto bg-white p-2 border border-border/50 rounded-md mb-4 shadow-sm overflow-hidden">
-                        <img src={getImg(settings.payment_qr)} alt="QR Code" className="w-full h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="text-muted-foreground text-xs italic mb-4">No QR Code Available</div>
-                    )}
-                    <a href={getImg(settings.payment_qr)} download className="text-[10px] text-accent tracking-widest uppercase font-bold hover:underline mb-2 block">Download QR Code</a>
+                    {(() => {
+                      const qrSrc = settings.payment_qr ? getImg(settings.payment_qr) : "/fonepay-qr.png";
+                      return (
+                        <div className="w-48 h-48 mx-auto bg-white p-2 border border-border/50 rounded-md mb-4 shadow-sm overflow-hidden">
+                          <img src={qrSrc} alt="FonePay QR Code" className="w-full h-full object-contain" />
+                        </div>
+                      );
+                    })()}
+                    <a href={settings.payment_qr ? getImg(settings.payment_qr) : "/fonepay-qr.png"} download className="text-[10px] text-accent tracking-widest uppercase font-bold hover:underline mb-2 block">Download QR Code</a>
                     <p className="font-body text-[10px] text-muted-foreground mb-4 uppercase tracking-widest">Amount to pay: <span className="text-accent font-bold">Rs. {grandTotal.toFixed(2)}</span></p>
                     
                     <div className="text-left mt-6 border-t border-border pt-6">
