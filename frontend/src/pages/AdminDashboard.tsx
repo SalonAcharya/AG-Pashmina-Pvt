@@ -11,6 +11,7 @@ import {
   Bell, X as XIcon, Clock, RotateCcw, Truck
 } from "lucide-react";
 import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
+import DeleteConfirm from "@/components/DeleteConfirm";
 import { API_BASE_URL } from "@/lib/api";
 
 type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
@@ -106,6 +107,17 @@ const AdminDashboard = () => {
   const [msgUnread, setMsgUnread] = useState(0);
   const [activeTab, setActiveTab] = useState("products");
   const [clearedTabs, setClearedTabs] = useState<string[]>([]);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: string;
+    id: number | null;
+    isDeleting: boolean;
+  }>({
+    open: false,
+    type: "",
+    id: null,
+    isDeleting: false,
+  });
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -185,8 +197,15 @@ const AdminDashboard = () => {
     return () => ws.close();
   }, [isAdmin]);
 
-  const handleDelete = async (type: string, id: number) => {
-    if (!confirm(`Delete this ${type}?`)) return;
+  const handleDeleteTrigger = (type: string, id: number) => {
+    setDeleteDialog({ open: true, type, id, isDeleting: false });
+  };
+
+  const confirmDelete = async () => {
+    const { type, id } = deleteDialog;
+    if (!id) return;
+
+    setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
     try {
       const endpoint =
         type === "message" ? "contact-messages" : type === "blog" ? "blog" : type + "s";
@@ -197,9 +216,14 @@ const AdminDashboard = () => {
       if (res.ok) {
         fetchData();
         toast.success("Deleted!");
+        setDeleteDialog({ open: false, type: "", id: null, isDeleting: false });
+      } else {
+        toast.error("Delete failed");
       }
     } catch (err) {
       toast.error("Delete failed");
+    } finally {
+      setDeleteDialog((prev) => ({ ...prev, isDeleting: false }));
     }
   };
 
@@ -515,7 +539,7 @@ const AdminDashboard = () => {
                             size="icon"
                             variant="destructive"
                             className="h-7 w-7"
-                            onClick={() => handleDelete("product", p.id)}
+                            onClick={() => handleDeleteTrigger("product", p.id)}
                           >
                             <Trash2 size={12} />
                           </Button>
@@ -580,7 +604,7 @@ const AdminDashboard = () => {
                             size="icon"
                             variant="destructive"
                             className="h-7 w-7"
-                            onClick={() => handleDelete("blog", b.id)}
+                            onClick={() => handleDeleteTrigger("blog", b.id)}
                           >
                             <Trash2 size={12} />
                           </Button>
@@ -640,7 +664,7 @@ const AdminDashboard = () => {
                             size="icon"
                             variant="destructive"
                             className="h-7 w-7"
-                            onClick={() => handleDelete("category", c.id)}
+                            onClick={() => handleDeleteTrigger("category", c.id)}
                           >
                             <Trash2 size={12} />
                           </Button>
@@ -769,7 +793,7 @@ const AdminDashboard = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 text-destructive"
-                                onClick={() => handleDelete("order", o.id)}
+                                onClick={() => handleDeleteTrigger("order", o.id)}
                               >
                                 <Trash2 size={12} />
                               </Button>
@@ -861,7 +885,7 @@ const AdminDashboard = () => {
                       variant="ghost"
                       size="icon"
                       className="absolute top-2 right-2 text-destructive opacity-0 group-hover:opacity-100"
-                      onClick={() => handleDelete("message", m.id)}
+                      onClick={() => handleDeleteTrigger("message", m.id)}
                     >
                       <Trash2 size={12} />
                     </Button>
@@ -932,6 +956,14 @@ const AdminDashboard = () => {
           </Tabs>
         )}
       </div>
+      <DeleteConfirm
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+        onConfirm={confirmDelete}
+        title={`Delete ${deleteDialog.type}?`}
+        description={`Are you sure you want to delete this ${deleteDialog.type}? This action cannot be undone.`}
+        loading={deleteDialog.isDeleting}
+      />
     </div>
   );
 };
