@@ -101,6 +101,7 @@ const AdminDashboard = () => {
   const [qrFile, setQrFile] = useState<File | null>(null);
   const [editing, setEditing] = useState<{ type: string; item: any } | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [notifications, setNotifications] = useState<{ id: number; type: "order" | "msg"; orderId?: number; msgId?: number; total?: string; method?: string; sender?: string; subject?: string; time: string }[]>([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [orderUnread, setOrderUnread] = useState(0);
@@ -124,7 +125,7 @@ const AdminDashboard = () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const [o, c, p, m, b, s] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/orders`, { headers }).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/api/orders?status=${selectedStatus}`, { headers }).then((r) => r.json()),
         fetch(`${API_BASE_URL}/api/categories`).then((r) => r.json()),
         fetch(`${API_BASE_URL}/api/products`).then((r) => r.json()),
         fetch(`${API_BASE_URL}/api/contact-messages`, { headers }).then((r) => r.json()),
@@ -141,7 +142,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (isAdmin) fetchData();
-  }, [isAdmin]);
+  }, [isAdmin, selectedStatus]);
 
   // ── WebSocket: listen for new orders & messages ──────────────────────
   useEffect(() => {
@@ -218,7 +219,8 @@ const AdminDashboard = () => {
         toast.success("Deleted!");
         setDeleteDialog({ open: false, type: "", id: null, isDeleting: false });
       } else {
-        toast.error("Delete failed");
+        const errorData = await res.json();
+        toast.error(errorData.message || "Delete failed");
       }
     } catch (err) {
       toast.error("Delete failed");
@@ -683,6 +685,24 @@ const AdminDashboard = () => {
             {/* ── Orders Tab ───────────────────────────────────────────────── */}
             <TabsContent value="orders">
               <Card className="border-accent/10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-xl">Manage Orders</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Filter:</span>
+                    <select
+                      className="text-xs border rounded-md px-2 py-1 bg-background"
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                    >
+                      <option value="all">All Orders</option>
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>

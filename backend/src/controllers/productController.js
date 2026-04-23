@@ -64,7 +64,22 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
   const { id } = req.params;
   try {
-    await db.query("DELETE FROM categories WHERE id=$1", [id]);
+    // Check if category has products
+    const productCheck = await db.query(
+      "SELECT id FROM products WHERE category_id = $1 LIMIT 1",
+      [id],
+    );
+    if (productCheck.rows.length > 0) {
+      return res.status(400).json({
+        message:
+          "Cannot delete category: It contains products. Please move or delete the products first.",
+      });
+    }
+
+    const result = await db.query("DELETE FROM categories WHERE id=$1", [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Category not found" });
+    }
     res.json({ message: "Category deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

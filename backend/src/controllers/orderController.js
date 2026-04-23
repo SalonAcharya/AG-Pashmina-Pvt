@@ -155,10 +155,20 @@ const getOrders = async (req, res) => {
     let query =
       "SELECT o.*, u.name as user_name FROM orders o JOIN users u ON o.user_id = u.id";
     let params = [];
+    let whereClauses = [];
 
     if (req.user.role_id !== 1 || req.query.mine === "true") {
-      query += " WHERE o.user_id = $1";
+      whereClauses.push("o.user_id = $" + (params.length + 1));
       params.push(req.user.id);
+    }
+
+    if (req.query.status && req.query.status !== "all") {
+      whereClauses.push("o.status = $" + (params.length + 1));
+      params.push(req.query.status);
+    }
+
+    if (whereClauses.length > 0) {
+      query += " WHERE " + whereClauses.join(" AND ");
     }
 
     query += " ORDER BY o.created_at DESC";
@@ -255,8 +265,36 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+const deleteOrder = async (req, res) => {
+  const { id } = req.params;
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Delete order items first (in case CASCADE is not set)
+    await client.query("DELETE FROM order_items WHERE order_id = $1", [id]);
+
+    // Delete the order
+    const result = await client.query("DELETE FROM orders WHERE id = $1", [id]);
+
+    if (result.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    await client.query("COMMIT");
+    res.json({ message: "Order deleted successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
   updateOrderStatus,
+  deleteOrder,
 };
