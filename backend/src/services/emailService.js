@@ -200,9 +200,66 @@ const sendAdminOrderNotification = async (order) => {
   }
 };
 
+const sendOrderStatusUpdateEmail = async (
+  email,
+  name,
+  orderId,
+  type,
+  newStatus,
+) => {
+  const isPaymentUpdate = type === "payment";
+  const subject = isPaymentUpdate
+    ? `Payment Status Updated for Order #${orderId}`
+    : `Order #${orderId} Status Updated: ${newStatus.toUpperCase()}`;
+
+  const statusLabel = isPaymentUpdate ? "Payment Status" : "Order Status";
+  const statusColor =
+    newStatus === "delivered" || newStatus === "paid" ? "#10b981" : "#000";
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: subject,
+      html: `
+        <div style="font-family: 'Inter', sans-serif; max-width: 500px; margin: 0 auto; padding: 40px 20px; background-color: #ffffff; border: 1px solid #f0f0f0; border-radius: 12px; color: #1a1a1a;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="font-size: 24px; font-weight: 700; margin: 0; color: #000;">AG Pashmina</h2>
+            <p style="color: #666; font-size: 14px; margin-top: 5px;">Exquisite Heritage Textiles</p>
+          </div>
+          
+          <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; text-align: center;">Status Update</h3>
+          <p style="font-size: 14px; line-height: 1.6; color: #4b5563; text-align: center; margin-bottom: 30px;">
+            Hi ${name}, your order <strong>#${orderId}</strong> has been updated.
+          </p>
+          
+          <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 8px;">${statusLabel}</div>
+            <div style="font-size: 24px; font-weight: 700; color: ${statusColor}; text-transform: uppercase;">${newStatus}</div>
+          </div>
+          
+          <div style="text-align: center;">
+            <a href="${FRONTEND_URL}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">Track your Order</a>
+          </div>
+          
+          <hr style="border: 0; border-top: 1px solid #f0f0f0; margin: 30px 0;" />
+          
+          <div style="text-align: center; font-size: 12px; color: #94a3b8;">
+            © 2026 AG Pashmina. All rights reserved.
+          </div>
+        </div>
+      `,
+    });
+    console.log(`${statusLabel} email sent to ${email} for Order #${orderId}`);
+  } catch (error) {
+    console.error(`Resend Status Update Email Error (${statusLabel}):`, error);
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
   sendOrderConfirmationEmail,
   sendAdminOrderNotification,
+  sendOrderStatusUpdateEmail,
   sendResetOTP,
 };

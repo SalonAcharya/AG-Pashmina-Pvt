@@ -217,16 +217,21 @@ const updateOrderStatus = async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // Fetch current status to detect cancellation transition
+    // Fetch current status and user info to detect transitions and send emails
     const currentRes = await client.query(
-      "SELECT status FROM orders WHERE id = $1",
+      "SELECT o.status, o.payment_status, u.email, u.name FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = $1",
       [id],
     );
     if (currentRes.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ message: "Order not found" });
     }
-    const previousStatus = currentRes.rows[0].status;
+    const {
+      status: previousStatus,
+      payment_status: previousPaymentStatus,
+      email,
+      name,
+    } = currentRes.rows[0];
 
     // Build the UPDATE query
     let query;
@@ -240,9 +245,10 @@ const updateOrderStatus = async (req, res) => {
       params = [status, id];
     }
     const result = await client.query(query, params);
+    const updatedOrder = result.rows[0];
 
     // ── Restore stock when order is cancelled, only from pending/processing ──
-    const newStatus = result.rows[0].status;
+    const newStatus = updatedOrder.status;
     const restorableStatuses = ["pending", "processing"];
     if (
       newStatus === "cancelled" &&
@@ -258,7 +264,34 @@ const updateOrderStatus = async (req, res) => {
     }
 
     await client.query("COMMIT");
-    res.json(result.rows[0]);
+    res.json(updatedOrder);
+
+    // ── Send Notification Emails (Asynchronously) ───────────────────────────
+    try {
+      // Check for Order Status Change
+      if (status && status !== previousStatus) {
+        emailService.sendOrderStatusUpdateEmail(
+          email,
+          name,
+          id,
+          "order",
+          status,
+        );
+      }
+
+      // Check for Payment Status Change
+      if (payment_status && payment_status !== previousPaymentStatus) {
+        emailService.sendOrderStatusUpdateEmail(
+          email,
+          name,
+          id,
+          "payment",
+          payment_status,
+        );
+      }
+    } catch (emailErr) {
+      console.error("Order status update email trigger failed:", emailErr);
+    }
   } catch (err) {
     await client.query("ROLLBACK");
     res.status(500).json({ message: err.message });
