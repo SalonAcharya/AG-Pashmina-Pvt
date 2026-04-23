@@ -77,8 +77,8 @@ const StockBadge = ({ qty, threshold }: { qty: number; threshold: number }) => {
 };
 
 // ── Tab badge helper ──────────────────────────────────────────────────────────
-const TabBadge = ({ count }: { count: number }) => {
-  if (count <= 0) return null;
+const TabBadge = ({ count, isCleared }: { count: number; isCleared: boolean }) => {
+  if (count <= 0 || isCleared) return null;
   return (
     <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-lg bg-accent/20 text-[10px] font-bold text-accent border border-accent/20 px-1.5 min-w-[20px]">
       {count > 99 ? "99+" : count}
@@ -104,6 +104,8 @@ const AdminDashboard = () => {
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [orderUnread, setOrderUnread] = useState(0);
   const [msgUnread, setMsgUnread] = useState(0);
+  const [activeTab, setActiveTab] = useState("products");
+  const [clearedTabs, setClearedTabs] = useState<string[]>([]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -279,21 +281,39 @@ const AdminDashboard = () => {
   const unreadMessagesCount = data.messages.filter((m: any) => !m.is_read).length;
 
   const handleTabChange = async (value: string) => {
-    if (value === "orders") {
-      setOrderUnread(0);
-    }
-    if (value === "messages" && unreadMessagesCount > 0) {
-      try {
-        await fetch(`${API_BASE_URL}/api/contact-messages/read-all`, {
-          method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        // Refresh local data to reflect 'read' status
-        fetchData();
-        setMsgUnread(0);
-      } catch (err) {
-        console.error("Failed to mark messages as read", err);
+    // If the tab being clicked has an active badge count and hasn't been cleared yet
+    // we clear the badge but DO NOT switch the tab yet (two-click activation)
+    const hasOrdersBadge = value === "orders" && pendingOrders > 0;
+    const hasMessagesBadge = value === "messages" && unreadMessagesCount > 0;
+    
+    if ((hasOrdersBadge || hasMessagesBadge) && !clearedTabs.includes(value)) {
+      // Clear the local badge
+      setClearedTabs(prev => [...prev, value]);
+      
+      // If it's messages, we also tell the backend to mark all as read
+      if (value === "messages") {
+        try {
+          await fetch(`${API_BASE_URL}/api/contact-messages/read-all`, {
+            method: "PATCH",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Note: we don't fetchData() here to avoid resetting the counts instantly
+          // which might be jarring. We'll refresh after we actually enter the tab.
+        } catch (err) {
+          console.error("Failed to mark messages as read", err);
+        }
       }
+      return; // Stop here, don't switch tab
+    }
+
+    // Normal switch (or second click)
+    setActiveTab(value);
+    
+    // Clear unread counts for the bell too
+    if (value === "orders") setOrderUnread(0);
+    if (value === "messages") {
+      setMsgUnread(0);
+      fetchData(); // Refresh to make sure everything is sync'd
     }
   };
 
@@ -430,7 +450,7 @@ const AdminDashboard = () => {
             <Loader2 className="animate-spin h-10 w-10 text-accent" />
           </div>
         ) : (
-          <Tabs defaultValue="products" className="space-y-6" onValueChange={handleTabChange}>
+          <Tabs value={activeTab} className="space-y-6" onValueChange={handleTabChange}>
             <TabsList className="bg-card border w-full justify-start p-1 gap-1 overflow-x-auto">
               <TabsTrigger value="products" className="gap-2">
                 <Package size={14} /> Products
@@ -441,7 +461,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="orders" className="gap-2 flex-grow sm:flex-grow-0 justify-start sm:justify-center">
                 <ShoppingBag size={14} /> 
                 <span>Orders</span>
-                <TabBadge count={pendingOrders} />
+                <TabBadge count={pendingOrders} isCleared={clearedTabs.includes("orders")} />
               </TabsTrigger>
               <TabsTrigger value="blogs" className="gap-2 flex-grow sm:flex-grow-0 justify-start sm:justify-center">
                 <BookOpen size={14} /> Blogs
@@ -449,7 +469,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="messages" className="gap-2 flex-grow sm:flex-grow-0 justify-start sm:justify-center">
                 <MessageSquare size={14} /> 
                 <span>Messages</span>
-                <TabBadge count={unreadMessagesCount} />
+                <TabBadge count={unreadMessagesCount} isCleared={clearedTabs.includes("messages")} />
               </TabsTrigger>
               <TabsTrigger value="settings" className="gap-2">
                 <SettingsIcon size={14} /> Settings

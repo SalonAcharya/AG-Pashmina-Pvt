@@ -9,14 +9,45 @@ const orderController = require("../controllers/orderController");
 const extraController = require("../controllers/extraController");
 const uploadRoutes = require("./upload");
 const { verifyToken, isAdmin } = require("../middleware/auth");
+const rateLimit = require("express-rate-limit");
+
+// Create limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests
+  message: {
+    message:
+      "Too many attempts from this IP, please try again after 15 minutes",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 messages
+  message: {
+    message: "Too many messages sent. Please wait an hour before sending more.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Auth Routes
-router.post("/auth/register", authController.register);
-router.post("/auth/login", authController.login);
+router.post("/auth/register", authLimiter, authController.register);
+router.post("/auth/login", authLimiter, authController.login);
 router.post("/auth/verify", authController.verifyEmail);
-router.post("/auth/resend-verification", authController.resendVerification);
-router.post("/auth/forgot-password", authController.forgotPassword);
-router.post("/auth/reset-password", authController.resetPassword);
+router.post(
+  "/auth/resend-verification",
+  authLimiter,
+  authController.resendVerification,
+);
+router.post(
+  "/auth/forgot-password",
+  authLimiter,
+  authController.forgotPassword,
+);
+router.post("/auth/reset-password", authLimiter, authController.resetPassword);
 router.post(
   "/auth/change-password",
   verifyToken,
@@ -106,7 +137,7 @@ router.get("/settings", extraController.getSettings);
 router.post("/settings", verifyToken, isAdmin, extraController.updateSettings);
 
 // Contact Routes
-router.post("/contact", extraController.createContactMessage);
+router.post("/contact", contactLimiter, extraController.createContactMessage);
 router.get(
   "/contact-messages",
   verifyToken,
