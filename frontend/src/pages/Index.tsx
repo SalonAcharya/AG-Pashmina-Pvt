@@ -38,7 +38,7 @@ const Index = () => {
     "@type": "Organization",
     "name": "AG Pashmina",
     "url": "https://www.agpashmina.com.np",
-    "logo": "https://www.agpashmina.com.np/logo.png",
+    "logo": "https://www.agpashmina.com.np/favicon.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+977-1-4700000",

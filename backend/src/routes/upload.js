@@ -2,6 +2,16 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const sharp = require("sharp");
+// Quick check for sharp native dependencies
+try {
+  sharp();
+  console.log("[Upload] Sharp initialized successfully");
+} catch (e) {
+  console.error(
+    "[Upload] Sharp initialization check failed. Image processing might be unstable:",
+    e.message,
+  );
+}
 const { cloudinary } = require("../config/cloudinary");
 const { verifyToken, isAdmin } = require("../middleware/auth");
 
@@ -85,27 +95,46 @@ router.post(
     try {
       console.log("Files received by upload route:", req.files?.length);
       if (!req.files || req.files.length === 0) {
+        console.warn("Upload request received but no files found in req.files");
         return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      // Check Cloudinary config
+      if (
+        !process.env.CLOUDINARY_CLOUD_NAME ||
+        !process.env.CLOUDINARY_API_KEY
+      ) {
+        console.error("FATAL: Cloudinary environment variables are missing!");
+        return res.status(500).json({
+          message: "Server configuration error: Cloudinary credentials missing",
+          error: "Cloudinary environment variables not found on server.",
+        });
       }
 
       const uploadPromises = req.files.map(async (file, idx) => {
         console.log(
-          `Processing file ${idx}: ${file.originalname} (${file.mimetype})`,
+          `[Upload] Processing file ${idx}: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`,
         );
+
         // Compress the image
         let compressed;
         try {
           compressed = await compressImage(file.buffer, file.mimetype);
-          console.log(`File ${idx} compressed successfully`);
+          console.log(
+            `[Upload] File ${idx} compressed. New size: ${compressed.length} bytes`,
+          );
         } catch (compErr) {
-          console.error(`Compression failed for file ${idx}:`, compErr);
+          console.error(
+            `[Upload] Compression failed for file ${idx}:`,
+            compErr,
+          );
           // Fallback to original buffer if compression fails
           compressed = file.buffer;
         }
 
         // Upload to Cloudinary
         return new Promise((resolve, reject) => {
-          console.log(`Opening Cloudinary stream for file ${idx}...`);
+          console.log(`[Upload] Opening Cloudinary stream for file ${idx}...`);
           const stream = cloudinary.uploader.upload_stream(
             {
               folder: "pashmina_products",
@@ -114,26 +143,43 @@ router.post(
             },
             (error, result) => {
               if (error) {
-                console.error(`Cloudinary error for file ${idx}:`, error);
-                reject(error);
+                console.error(
+                  `[Upload] Cloudinary rejection for file ${idx}:`,
+                  error,
+                );
+                reject(
+                  new Error(
+                    `Cloudinary Error: ${error.message || "Unknown error"}`,
+                  ),
+                );
               } else {
                 console.log(
-                  `File ${idx} uploaded to Cloudinary: ${result.secure_url}`,
+                  `[Upload] File ${idx} successfully uploaded: ${result.secure_url}`,
                 );
                 resolve(result.secure_url);
               }
             },
           );
+
+          stream.on("error", (err) => {
+            console.error(`[Upload] Stream error for file ${idx}:`, err);
+            reject(new Error(`Stream Error: ${err.message}`));
+          });
+
           stream.end(compressed);
         });
       });
 
       const urls = await Promise.all(uploadPromises);
-      console.log("All files uploaded successfully:", urls);
+      console.log("[Upload] All files processed and uploaded successfully");
       res.json({ urls });
     } catch (err) {
-      console.error("FATAL Upload Error:", err);
-      res.status(500).json({ message: "Upload failed", error: err.message });
+      console.error("[Upload] FATAL UNHANDLED ERROR:", err);
+      res.status(500).json({
+        message: "Upload failed",
+        error: err.message,
+        stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      });
     }
   },
 );

@@ -13,7 +13,7 @@ interface SEOProps {
 
 const SEO: React.FC<SEOProps> = ({
   title = "AG Pashmina | Luxury Himalayan Textiles from Nepal",
-  description = "AG Pashmina Pvt. Ltd. — Premium cashmere, pashmina, and yak wool shawls handcrafted by Nepali artisans in the shadow of the Himalayas.",
+  description = "AG Pashmina Pvt. Ltd. Premium cashmere, pashmina, and yak wool shawls handcrafted by Nepali artisans in the shadow of the Himalayas.",
   keywords = "pashmina, cashmere, nepal, luxury textiles, handcrafted, Himalayan wool, shawls",
   image = "/og-image.png",
   url = "https://www.agpashmina.com.np",

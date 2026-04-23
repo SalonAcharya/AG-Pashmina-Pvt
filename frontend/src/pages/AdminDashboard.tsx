@@ -243,21 +243,35 @@ const AdminDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
+        
         const uploadData = await uploadRes.json();
+        
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.message || "Upload failed");
+        }
+        
         finalUrl = uploadData.urls[0];
       }
+      
       if (finalUrl) {
-        await fetch(`${API_BASE_URL}/api/settings`, {
+        const res = await fetch(`${API_BASE_URL}/api/settings`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ payment_qr: finalUrl }),
         });
+        
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.message || "Failed to update settings");
+        }
+        
         toast.success("Settings saved");
         fetchData();
         setQrFile(null);
       }
-    } catch {
-      toast.error("Error saving settings");
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast.error(err.message || "Error saving settings");
     }
   };
 
