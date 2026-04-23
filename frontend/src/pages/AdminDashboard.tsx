@@ -209,7 +209,7 @@ const AdminDashboard = () => {
     setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
     try {
       const endpoint =
-        type === "message" ? "contact-messages" : type === "blog" ? "blog" : type + "s";
+        type === "message" ? "contact-messages" : type === "blog" ? "blog" : type === "category" ? "categories" : type + "s";
       const res = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
