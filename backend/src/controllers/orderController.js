@@ -133,6 +133,8 @@ const createOrder = async (req, res) => {
           user.name,
           fullOrder,
         );
+
+        emailService.sendAdminOrderNotification(fullOrder);
       }
     } catch (emailErr) {
       console.error("Order confirmation email trigger failed:", emailErr);

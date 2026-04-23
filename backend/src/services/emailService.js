@@ -127,7 +127,7 @@ const sendOrderConfirmationEmail = async (email, name, order) => {
           </div>
 
           <div style="text-align: center;">
-            <a href="${FRONTEND_URL}/profile" style="display: inline-block; padding: 14px 32px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">View Order Status</a>
+            <a href="${FRONTEND_URL}/dashboard" style="display: inline-block; padding: 14px 32px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">View Order Status</a>
           </div>
           
           <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 48px;">
@@ -142,8 +142,67 @@ const sendOrderConfirmationEmail = async (email, name, order) => {
   }
 };
 
+const sendAdminOrderNotification = async (order) => {
+  const { id, items, total_amount, shipping_address } = order;
+  const adminEmail = process.env.ADMIN_EMAIL || "agpashmina902@gmail.com";
+
+  const itemsHtml = items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+        <div style="font-weight: 600; font-size: 14px;">${item.product_name}</div>
+        <div style="color: #666; font-size: 12px;">Qty: ${item.quantity} | Size: ${item.size} | Color: ${item.color}</div>
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-size: 14px;">
+        Rs.${item.price * item.quantity}
+      </td>
+    </tr>
+  `,
+    )
+    .join("");
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: adminEmail,
+      subject: `🚨 NEW ORDER RECEIVED - #${id}`,
+      html: `
+        <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a; background-color: #f8fafc; border-radius: 12px;">
+          <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 16px; color: #000;">New Order Notification</h2>
+          <p style="font-size: 16px; margin-bottom: 32px;">You have received a new order <strong>#${id}</strong>.</p>
+          
+          <div style="background-color: #ffffff; border-radius: 8px; padding: 24px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+            <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 16px; letter-spacing: 1px;">Order Details</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+              ${itemsHtml}
+              <tr>
+                <td style="padding: 20px 0 0 0; font-weight: 700; font-size: 18px;">Total Revenue</td>
+                <td style="padding: 20px 0 0 0; text-align: right; font-weight: 700; font-size: 18px; color: #000;">Rs.${total_amount}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background-color: #ffffff; border-radius: 8px; padding: 24px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+            <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 12px; letter-spacing: 1px;">Delivery Address</h4>
+            <p style="font-size: 14px; margin: 0; line-height: 1.6;">${shipping_address}</p>
+          </div>
+
+          <div style="text-align: center;">
+            <a href="${FRONTEND_URL}/admin" style="display: inline-block; padding: 14px 32px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px;">Process Order in Dashboard</a>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`Admin order notification sent to ${adminEmail}`);
+  } catch (error) {
+    console.error("Resend Admin Order Notification Error:", error);
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
   sendOrderConfirmationEmail,
+  sendAdminOrderNotification,
   sendResetOTP,
 };
