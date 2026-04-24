@@ -76,10 +76,11 @@ server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
   // Self-ping logic to prevent Render from sleeping (free tier)
+  const https = require("https");
   const RENDER_URL = "https://ag-pashmina-pvt.onrender.com/api/health";
   setInterval(
     () => {
-      http
+      https
         .get(RENDER_URL, (res) => {
           console.log(`Self-ping status: ${res.statusCode}`);
         })
@@ -87,6 +88,6 @@ server.listen(PORT, () => {
           console.error(`Self-ping error: ${err.message}`);
         });
     },
-    4 * 60 * 1000,
-  ); // Ping every 4 minutes
+    14 * 60 * 1000,
+  ); // Ping every 14 minutes
 });
