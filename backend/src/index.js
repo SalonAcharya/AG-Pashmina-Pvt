@@ -87,6 +87,6 @@ server.listen(PORT, () => {
           console.error(`Self-ping error: ${err.message}`);
         });
     },
-    14 * 60 * 1000,
-  ); // Ping every 14 minutes
+    4 * 60 * 1000,
+  ); // Ping every 4 minutes
 });
