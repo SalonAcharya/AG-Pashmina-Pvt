@@ -9,6 +9,18 @@ function ScrollToTop() {
   }, [pathname]);
   return null;
 }
+
+function KeepAlive() {
+  useEffect(() => {
+    const PING_URL = "https://ag-pashmina-pvt.onrender.com/api/health";
+    const interval = setInterval(() => {
+      fetch(PING_URL).catch(() => {});
+    }, 4 * 60 * 1000); // 4 minutes
+    return () => clearInterval(interval);
+  }, []);
+  return null;
+}
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -48,7 +60,9 @@ const App = () => (
           <CartProvider>
             <TooltipProvider>
               <ScrollToTop />
+              <KeepAlive />
               <Toaster />
+
               <Sonner />
               <Navbar />
               <Routes>
