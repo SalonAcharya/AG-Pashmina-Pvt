@@ -11,6 +11,11 @@ const uploadRoutes = require("./upload");
 const { verifyToken, isAdmin } = require("../middleware/auth");
 const rateLimit = require("express-rate-limit");
 
+// Health check endpoint
+router.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 // Create limiters
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

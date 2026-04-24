@@ -74,4 +74,19 @@ wsService.init(server);
 // Start server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Self-ping logic to prevent Render from sleeping (free tier)
+  const RENDER_URL = "https://ag-pashmina-pvt.onrender.com/api/health";
+  setInterval(
+    () => {
+      http
+        .get(RENDER_URL, (res) => {
+          console.log(`Self-ping status: ${res.statusCode}`);
+        })
+        .on("error", (err) => {
+          console.error(`Self-ping error: ${err.message}`);
+        });
+    },
+    14 * 60 * 1000,
+  ); // Ping every 14 minutes
 });
