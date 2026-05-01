@@ -239,9 +239,17 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              <p className="font-body text-sm text-muted-foreground leading-relaxed mb-6">
-                {product.description}
-              </p>
+              <div className="font-body text-sm text-muted-foreground leading-relaxed mb-6 space-y-3">
+                {product.description
+                  ? product.description.split("\n").map((line: string, i: number) =>
+                      line.trim() ? (
+                        <p key={i}>{line}</p>
+                      ) : (
+                        <br key={i} />
+                      )
+                    )
+                  : null}
+              </div>
               
               {product.stock_quantity > 0 && product.stock_quantity <= (product.low_stock_threshold || 5) && (
                 <p className="font-body text-[10px] tracking-[0.1em] text-orange-600 font-bold uppercase mb-8 flex items-center gap-2">
