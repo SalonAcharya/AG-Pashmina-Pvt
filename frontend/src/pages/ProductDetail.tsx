@@ -293,19 +293,23 @@ const ProductDetail = () => {
 
                 {product.sizes?.length > 0 && (
                   <div>
-                    <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">
-                      Size {selectedSize && <span className="text-accent normal-case">— {selectedSize}</span>}
+                    <p className="font-body text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-3">
+                      Size
+                      {selectedSize && (
+                        <span className="ml-2 text-accent normal-case font-semibold tracking-normal">— {selectedSize}</span>
+                      )}
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {product.sizes.map((s: string) => (
                         <button
                           key={s}
                           type="button"
+                          title={s}
                           onClick={() => setSelectedSize(s === selectedSize ? undefined : s)}
-                          className={`px-3 py-1 border rounded text-[10px] uppercase tracking-widest font-bold transition-all duration-150 ${
+                          className={`relative min-w-[2.75rem] h-10 px-4 rounded-full border-2 font-body text-[11px] uppercase tracking-widest font-bold transition-all duration-200 focus:outline-none ${
                             selectedSize === s
-                              ? "border-accent bg-accent/10 text-accent"
-                              : "border-border text-muted-foreground hover:border-accent/40"
+                              ? "border-accent bg-accent text-accent-foreground shadow-md scale-105"
+                              : "border-border bg-background text-muted-foreground hover:border-accent hover:text-accent hover:scale-105"
                           }`}
                         >
                           {s}
@@ -317,24 +321,53 @@ const ProductDetail = () => {
 
                 {product.colors?.length > 0 && (
                   <div className={product.sizes?.length > 0 ? "col-span-2" : ""}>
-                    <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">
-                      Color {selectedColor && <span className="text-accent normal-case">— {selectedColor}</span>}
+                    <p className="font-body text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-3">
+                      Color
+                      {selectedColor && (
+                        <span className="ml-2 text-accent normal-case font-semibold tracking-normal">— {selectedColor}</span>
+                      )}
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {product.colors.map((c: string) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => setSelectedColor(c === selectedColor ? undefined : c)}
-                          className={`px-3 py-1 border rounded text-[10px] uppercase tracking-widest font-bold transition-all duration-150 ${
-                            selectedColor === c
-                              ? "border-accent bg-accent/10 text-accent"
-                              : "border-border text-muted-foreground hover:border-accent/40"
-                          }`}
-                        >
-                          {c}
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap gap-3">
+                      {product.colors.map((c: string) => {
+                        const isSelected = selectedColor === c;
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            title={c}
+                            onClick={() => setSelectedColor(c === selectedColor ? undefined : c)}
+                            className={`group relative flex flex-col items-center gap-1.5 focus:outline-none`}
+                          >
+                            <span
+                              className={`relative w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all duration-200 shadow-sm ${
+                                isSelected
+                                  ? "border-accent scale-110 shadow-md"
+                                  : "border-border/40 hover:border-accent/60 hover:scale-110"
+                              }`}
+                              style={{ backgroundColor: c.toLowerCase().replace(/\s+/g, '') }}
+                            >
+                              {isSelected && (
+                                <svg
+                                  className="w-4 h-4 drop-shadow"
+                                  viewBox="0 0 16 16"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path d="M3 8l3.5 3.5L13 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M3 8l3.5 3.5L13 5" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.2" />
+                                </svg>
+                              )}
+                            </span>
+                            <span
+                              className={`font-body text-[9px] uppercase tracking-wider transition-colors duration-200 ${
+                                isSelected ? "text-accent font-bold" : "text-muted-foreground/70 group-hover:text-muted-foreground"
+                              }`}
+                            >
+                              {c}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

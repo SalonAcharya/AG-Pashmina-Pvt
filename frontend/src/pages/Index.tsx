@@ -23,7 +23,7 @@ const Index = () => {
         const prodData = await prodRes.json();
         const catsData = await catsRes.json();
         setFeaturedProducts(Array.isArray(prodData) ? prodData.slice(0, 8) : []);
-        setCategories(Array.isArray(catsData) ? catsData.slice(0, 3) : []);
+        setCategories(Array.isArray(catsData) ? catsData : []);
       } catch (err) {
         console.error("Home data fetch failed", err);
       }
@@ -103,30 +103,38 @@ const Index = () => {
             </div>
           </FadeInUp>
         </div>
-        {categories.length > 0 && (
-          <div className="overflow-hidden">
-            <div className="marquee-track flex gap-6 w-max">
-              {[...categories, ...categories].map((cat: any, i) => (
-                <Link
-                  key={i}
-                  to={`/shop?category=${cat.id}`}
-                  className="group relative flex-shrink-0 w-64 h-80 rounded-lg overflow-hidden block"
-                >
-                  <img
-                    src={getImg(cat.image)}
-                    alt={cat.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent" />
-                  <div className="absolute bottom-0 p-6">
-                    <p className="font-body text-[10px] tracking-[0.3em] uppercase text-accent-foreground/60 mb-1">Collection</p>
-                    <h3 className="font-display text-xl text-accent-foreground">{cat.name}</h3>
-                  </div>
-                </Link>
-              ))}
+        {categories.length > 0 && (() => {
+          // Repeat enough times so the marquee never shows empty space
+          const minItems = 12;
+          const repeats = Math.ceil(minItems / categories.length);
+          const loopCats = Array.from({ length: repeats * 2 }, (_, r) =>
+            categories.map((cat: any, i: number) => ({ ...cat, _key: `${r}-${i}` }))
+          ).flat();
+          return (
+            <div className="overflow-hidden">
+              <div className="marquee-track flex gap-6 w-max">
+                {loopCats.map((cat: any) => (
+                  <Link
+                    key={cat._key}
+                    to={`/shop?category=${cat.id}`}
+                    className="group relative flex-shrink-0 w-64 h-80 rounded-lg overflow-hidden block"
+                  >
+                    <img
+                      src={getImg(cat.image)}
+                      alt={cat.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent" />
+                    <div className="absolute bottom-0 p-6">
+                      <p className="font-body text-[10px] tracking-[0.3em] uppercase text-accent-foreground/60 mb-1">Collection</p>
+                      <h3 className="font-display text-xl text-accent-foreground">{cat.name}</h3>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </section>
 
       {/* From Our Collection */}
