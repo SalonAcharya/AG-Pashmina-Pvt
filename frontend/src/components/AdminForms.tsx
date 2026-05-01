@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -178,6 +178,8 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
   });
   const [uploading, setUploading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const sizesInputRef = useRef<HTMLInputElement>(null);
+  const colorsInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const base = parseFloat(form.base_price) || 0;
@@ -236,8 +238,18 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
       uploadedImages = urls;
     }
 
-    const finalForm = { 
-      ...form, 
+    // Capture any value typed in the tag inputs but not yet committed with Enter
+    const pendingSize = sizesInputRef.current?.value.trim();
+    const pendingColor = colorsInputRef.current?.value.trim();
+    const finalSizes = pendingSize && !form.sizes.includes(pendingSize)
+      ? [...form.sizes, pendingSize] : form.sizes;
+    const finalColors = pendingColor && !form.colors.includes(pendingColor)
+      ? [...form.colors, pendingColor] : form.colors;
+
+    const finalForm = {
+      ...form,
+      sizes: finalSizes,
+      colors: finalColors,
       images: [...form.images, ...uploadedImages],
       base_price: parseFloat(form.base_price),
       discount_value: parseFloat(form.discount_value),
@@ -353,23 +365,24 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
 
         {/* Sizes */}
         <div className="space-y-2">
-          <Label>Sizes <span className="text-muted-foreground text-xs font-normal">(press Enter to add)</span></Label>
+          <Label>Sizes <span className="text-muted-foreground text-xs font-normal">(type one size, press Enter to add)</span></Label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {form.sizes.map((s, idx) => (
+            {form.sizes.map((s: string, idx: number) => (
               <span key={idx} className="flex items-center gap-1 px-3 py-1 bg-secondary border border-border rounded-full text-xs font-bold">
                 {s}
-                <button type="button" onClick={() => setForm({...form, sizes: form.sizes.filter((_, i) => i !== idx)})}><X size={10} /></button>
+                <button type="button" onClick={() => setForm({...form, sizes: form.sizes.filter((_: string, i: number) => i !== idx)})}><X size={10} /></button>
               </span>
             ))}
           </div>
           <Input
-            placeholder="e.g. S, M, L, XL, Free Size"
+            ref={sizesInputRef}
+            placeholder="Type a size and press Enter — e.g. S then Enter, M then Enter"
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 const val = (e.target as HTMLInputElement).value.trim();
                 if (val && !form.sizes.includes(val)) {
-                  setForm({...form, sizes: [...form.sizes, val]});
+                  setForm(prev => ({ ...prev, sizes: [...prev.sizes, val] }));
                   (e.target as HTMLInputElement).value = '';
                 }
               }
@@ -379,23 +392,24 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
 
         {/* Colors */}
         <div className="space-y-2">
-          <Label>Colors <span className="text-muted-foreground text-xs font-normal">(press Enter to add)</span></Label>
+          <Label>Colors <span className="text-muted-foreground text-xs font-normal">(type one color, press Enter to add)</span></Label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {form.colors.map((c, idx) => (
+            {form.colors.map((c: string, idx: number) => (
               <span key={idx} className="flex items-center gap-1 px-3 py-1 bg-secondary border border-border rounded-full text-xs font-bold">
                 {c}
-                <button type="button" onClick={() => setForm({...form, colors: form.colors.filter((_, i) => i !== idx)})}><X size={10} /></button>
+                <button type="button" onClick={() => setForm({...form, colors: form.colors.filter((_: string, i: number) => i !== idx)})}><X size={10} /></button>
               </span>
             ))}
           </div>
           <Input
-            placeholder="e.g. Red, Navy Blue, Beige, Ivory"
+            ref={colorsInputRef}
+            placeholder="Type a color and press Enter — e.g. Red then Enter"
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 const val = (e.target as HTMLInputElement).value.trim();
                 if (val && !form.colors.includes(val)) {
-                  setForm({...form, colors: [...form.colors, val]});
+                  setForm(prev => ({ ...prev, colors: [...prev.colors, val] }));
                   (e.target as HTMLInputElement).value = '';
                 }
               }
