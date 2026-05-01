@@ -93,8 +93,12 @@ const Cart = () => {
                   <span className="text-foreground font-bold">Rs. {totalPrice}</span>
                 </div>
               </div>
+              <div className="flex justify-between font-body text-[10px] text-muted-foreground mb-6 italic">
+                <span>Delivery fee</span>
+                <span>Calculated at checkout</span>
+              </div>
               <div className="flex justify-between font-display text-xl mb-10">
-                <span className="font-light">Grand Total</span>
+                <span className="font-light">Subtotal</span>
                 <span className="font-bold">Rs. {totalPrice}</span>
               </div>
               <Link to="/checkout">

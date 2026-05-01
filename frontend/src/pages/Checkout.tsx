@@ -52,9 +52,8 @@ const Checkout = () => {
     return acc + (price * item.quantity);
   }, 0);
 
-  const vat = subtotal * 0.13;
   const deliveryFee = form.district === "Kathmandu" ? 100 : 200;
-  const grandTotal = subtotal + vat + deliveryFee;
+  const grandTotal = subtotal + deliveryFee;
 
   const handleFinalize = async () => {
     if (!form.address || !form.phone || !form.district) {
@@ -87,7 +86,7 @@ const Checkout = () => {
 
       const orderPayload = {
         total_amount: grandTotal,
-        vat_amount: vat,
+        vat_amount: 0,
         delivery_fee: deliveryFee,
         shipping_address,
         payment_method: paymentMethod,
@@ -310,8 +309,6 @@ const Checkout = () => {
                   <span className="text-foreground">Rs. {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-body text-xs uppercase tracking-widest text-muted-foreground font-bold">
-                  <span>VAT (13%)</span>
-                  <span className="text-foreground">Rs. {vat.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-body text-xs uppercase tracking-widest text-muted-foreground font-bold">
                   <span>Delivery Fee</span>
