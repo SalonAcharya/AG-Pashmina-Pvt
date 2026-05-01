@@ -111,6 +111,20 @@
   animation: kenburns 25s ease-in-out infinite alternate;
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
 /* Gold underline nav link */
 .nav-link-gold {
   position: relative;

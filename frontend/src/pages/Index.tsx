@@ -93,22 +93,40 @@ const Index = () => {
         </FadeInUp>
       </section>
 
-      {/* Featured Collections */}
+      {/* Featured Collections — infinite marquee */}
       <section className="py-24 bg-secondary">
         <div className="container mx-auto px-6 lg:px-12">
-          <FadeInUp><div className="text-center mb-16"><p className="font-body text-xs tracking-[0.3em] uppercase text-accent mb-4">Collections</p><h2 className="font-display text-4xl font-light">Featured Collections</h2></div></FadeInUp>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {categories.map((cat: any, i) => (
-              <FadeInUp key={cat.id} delay={i * 0.1}>
-                <Link to={`/shop?category=${cat.id}`} className="group relative block overflow-hidden rounded-lg aspect-[3/4]">
-                  <img src={getImg(cat.image)} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent" />
-                  <div className="absolute bottom-0 p-8"><h3 className="font-display text-2xl text-accent-foreground">{cat.name}</h3></div>
-                </Link>
-              </FadeInUp>
-            ))}
-          </div>
+          <FadeInUp>
+            <div className="text-center mb-16">
+              <p className="font-body text-xs tracking-[0.3em] uppercase text-accent mb-4">Collections</p>
+              <h2 className="font-display text-4xl font-light">Featured Collections</h2>
+            </div>
+          </FadeInUp>
         </div>
+        {categories.length > 0 && (
+          <div className="overflow-hidden">
+            <div className="marquee-track flex gap-6 w-max">
+              {[...categories, ...categories].map((cat: any, i) => (
+                <Link
+                  key={i}
+                  to={`/shop?category=${cat.id}`}
+                  className="group relative flex-shrink-0 w-64 h-80 rounded-lg overflow-hidden block"
+                >
+                  <img
+                    src={getImg(cat.image)}
+                    alt={cat.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent" />
+                  <div className="absolute bottom-0 p-6">
+                    <p className="font-body text-[10px] tracking-[0.3em] uppercase text-accent-foreground/60 mb-1">Collection</p>
+                    <h3 className="font-display text-xl text-accent-foreground">{cat.name}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* From Our Collection */}

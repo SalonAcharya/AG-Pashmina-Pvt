@@ -111,12 +111,13 @@ const createProduct = async (req, res) => {
     images,
     sizes,
     colors,
+    weight,
     stock_quantity,
     low_stock_threshold,
   } = req.body;
   try {
     const result = await db.query(
-      "INSERT INTO products (name, slug, description, base_price, discount_type, discount_value, sale_price, category_id, images, sizes, colors, stock_quantity, low_stock_threshold) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *",
+      "INSERT INTO products (name, slug, description, base_price, discount_type, discount_value, sale_price, category_id, images, sizes, colors, weight, stock_quantity, low_stock_threshold) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *",
       [
         name,
         slug,
@@ -129,6 +130,7 @@ const createProduct = async (req, res) => {
         images,
         sizes,
         colors,
+        weight,
         stock_quantity,
         low_stock_threshold,
       ],
@@ -153,13 +155,14 @@ const updateProduct = async (req, res) => {
     images,
     sizes,
     colors,
+    weight,
     stock_quantity,
     low_stock_threshold,
     is_active,
   } = req.body;
   try {
     const result = await db.query(
-      "UPDATE products SET name=$1, slug=$2, description=$3, base_price=$4, discount_type=$5, discount_value=$6, sale_price=$7, category_id=$8, images=$9, sizes=$10, colors=$11, stock_quantity=$12, low_stock_threshold=$13, is_active=$14 WHERE id=$15 RETURNING *",
+      "UPDATE products SET name=$1, slug=$2, description=$3, base_price=$4, discount_type=$5, discount_value=$6, sale_price=$7, category_id=$8, images=$9, sizes=$10, colors=$11, weight=$12, stock_quantity=$13, low_stock_threshold=$14, is_active=$15 WHERE id=$16 RETURNING *",
       [
         name,
         slug,
@@ -172,6 +175,7 @@ const updateProduct = async (req, res) => {
         images,
         sizes,
         colors,
+        weight,
         stock_quantity,
         low_stock_threshold,
         is_active,

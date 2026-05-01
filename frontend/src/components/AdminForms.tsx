@@ -170,9 +170,10 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
     sale_price: editData?.sale_price?.toString() || "",
     category_id: editData?.category_id || "", 
     images: editData?.images || [] as string[], 
-    sizes: editData?.sizes || [] as string[], 
-    colors: editData?.colors || [] as string[], 
-    stock_quantity: editData?.stock_quantity || 0, 
+    sizes: editData?.sizes || [] as string[],
+    colors: editData?.colors || [] as string[],
+    weight: editData?.weight || "",
+    stock_quantity: editData?.stock_quantity || 0,
     low_stock_threshold: editData?.low_stock_threshold || 5
   });
   const [uploading, setUploading] = useState(false);
@@ -255,8 +256,11 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
       });
       if (res.ok) {
         toast.success(editData ? "Product updated!" : "Product added!");
-        onAdd();
+        await onAdd();
         if (onCancel) onCancel();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message || "Failed to save product");
       }
     } catch (err) { toast.error("Error saving product"); }
   };
@@ -396,6 +400,16 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
                 }
               }
             }}
+          />
+        </div>
+
+        {/* Weight */}
+        <div className="space-y-2">
+          <Label>Weight</Label>
+          <Input
+            placeholder="e.g. 90-100 Grams, 120g"
+            value={form.weight}
+            onChange={e => setForm({...form, weight: e.target.value})}
           />
         </div>
       </div>

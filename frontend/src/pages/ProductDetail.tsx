@@ -2,10 +2,9 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import { FadeInUp } from "@/components/FadeInUp";
-import { Heart, Minus, Plus, ChevronLeft, Star, Truck, RotateCcw, Shield, Loader2, ChevronRight } from "lucide-react";
+import { Heart, Minus, Plus, Star, Loader2, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -265,18 +264,14 @@ const ProductDetail = () => {
                 </p>
               )}
 
-              <div className="grid grid-cols-2 gap-y-6 mb-12">
-                {/* <div>
-                  <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Craftsmanship</p>
-                  <p className="font-body text-sm font-semibold">Hand-loomed in Kathmandu</p>
-                </div> */}
+              <div className="grid grid-cols-2 gap-y-8 mb-12">
                 <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Material</p>
                   <p className="font-body text-sm font-semibold">{product.category_name || "100% Cashmere"}</p>
                 </div>
                 <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Shipping</p>
-                  <p className="font-body text-sm font-semibold text-accent font-bold">Delivery all over Nepal</p>
+                  <p className="font-body text-sm font-semibold text-accent">Delivery all over Nepal</p>
                 </div>
                 <div>
                   <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Status</p>
@@ -288,57 +283,62 @@ const ProductDetail = () => {
                     <p className="font-body text-sm text-success font-bold uppercase tracking-tighter">In Stock</p>
                   )}
                 </div>
+
+                {product.weight && (
+                  <div>
+                    <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">Weight</p>
+                    <p className="font-body text-sm font-semibold">{product.weight}</p>
+                  </div>
+                )}
+
+                {product.sizes?.length > 0 && (
+                  <div>
+                    <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">
+                      Size {selectedSize && <span className="text-accent normal-case">— {selectedSize}</span>}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.sizes.map((s: string) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setSelectedSize(s === selectedSize ? undefined : s)}
+                          className={`px-3 py-1 border rounded text-[10px] uppercase tracking-widest font-bold transition-all duration-150 ${
+                            selectedSize === s
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-border text-muted-foreground hover:border-accent/40"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {product.colors?.length > 0 && (
+                  <div className={product.sizes?.length > 0 ? "col-span-2" : ""}>
+                    <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">
+                      Color {selectedColor && <span className="text-accent normal-case">— {selectedColor}</span>}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.colors.map((c: string) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setSelectedColor(c === selectedColor ? undefined : c)}
+                          className={`px-3 py-1 border rounded text-[10px] uppercase tracking-widest font-bold transition-all duration-150 ${
+                            selectedColor === c
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-border text-muted-foreground hover:border-accent/40"
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Size selector */}
-              {product.sizes?.length > 0 && (
-                <div className="mb-6">
-                  <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-3 font-bold">
-                    Size <span className="text-accent">{selectedSize ? `— ${selectedSize}` : ""}</span>
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {product.sizes.map((s: string) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setSelectedSize(s === selectedSize ? undefined : s)}
-                        className={`px-4 py-2 border rounded-md font-body text-xs uppercase tracking-widest font-bold transition-all duration-200 ${
-                          selectedSize === s
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-border text-muted-foreground hover:border-accent/50"
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Color selector */}
-              {product.colors?.length > 0 && (
-                <div className="mb-8">
-                  <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-3 font-bold">
-                    Color <span className="text-accent">{selectedColor ? `— ${selectedColor}` : ""}</span>
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {product.colors.map((c: string) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setSelectedColor(c === selectedColor ? undefined : c)}
-                        className={`px-4 py-2 border rounded-md font-body text-xs uppercase tracking-widest font-bold transition-all duration-200 ${
-                          selectedColor === c
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-border text-muted-foreground hover:border-accent/50"
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Quantity & Add */}
               <div className="flex flex-col gap-4 mb-12">
