@@ -120,19 +120,31 @@ const AdminDashboard = () => {
     isDeleting: false,
   });
 
+  const safeJson = async (res: Response, fallback: any) => {
+    if (!res.ok) return fallback;
+    try { return await res.json(); } catch { return fallback; }
+  };
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const [o, c, p, m, b, s] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/orders?status=${selectedStatus}`, { headers }).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/api/categories`).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/api/products`).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/api/contact-messages`, { headers }).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/api/blog`).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/api/settings`).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/api/orders?status=${selectedStatus}`, { headers }).then((r) => safeJson(r, [])),
+        fetch(`${API_BASE_URL}/api/categories`).then((r) => safeJson(r, [])),
+        fetch(`${API_BASE_URL}/api/products`).then((r) => safeJson(r, [])),
+        fetch(`${API_BASE_URL}/api/contact-messages`, { headers }).then((r) => safeJson(r, [])),
+        fetch(`${API_BASE_URL}/api/blog`).then((r) => safeJson(r, [])),
+        fetch(`${API_BASE_URL}/api/settings`).then((r) => safeJson(r, {})),
       ]);
-      setData({ orders: o, categories: c, products: p, messages: m, blogs: b, settings: s });
+      setData({
+        orders:     Array.isArray(o) ? o : [],
+        categories: Array.isArray(c) ? c : [],
+        products:   Array.isArray(p) ? p : [],
+        messages:   Array.isArray(m) ? m : [],
+        blogs:      Array.isArray(b) ? b : [],
+        settings:   (s && typeof s === "object" && !Array.isArray(s)) ? s : {},
+      });
     } catch (err) {
       toast.error("Error loading data");
     } finally {

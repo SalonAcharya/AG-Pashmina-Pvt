@@ -346,6 +346,58 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
             </label>
           </div>
         </div>
+
+        {/* Sizes */}
+        <div className="space-y-2">
+          <Label>Sizes <span className="text-muted-foreground text-xs font-normal">(press Enter to add)</span></Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {form.sizes.map((s, idx) => (
+              <span key={idx} className="flex items-center gap-1 px-3 py-1 bg-secondary border border-border rounded-full text-xs font-bold">
+                {s}
+                <button type="button" onClick={() => setForm({...form, sizes: form.sizes.filter((_, i) => i !== idx)})}><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <Input
+            placeholder="e.g. S, M, L, XL, Free Size"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = (e.target as HTMLInputElement).value.trim();
+                if (val && !form.sizes.includes(val)) {
+                  setForm({...form, sizes: [...form.sizes, val]});
+                  (e.target as HTMLInputElement).value = '';
+                }
+              }
+            }}
+          />
+        </div>
+
+        {/* Colors */}
+        <div className="space-y-2">
+          <Label>Colors <span className="text-muted-foreground text-xs font-normal">(press Enter to add)</span></Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {form.colors.map((c, idx) => (
+              <span key={idx} className="flex items-center gap-1 px-3 py-1 bg-secondary border border-border rounded-full text-xs font-bold">
+                {c}
+                <button type="button" onClick={() => setForm({...form, colors: form.colors.filter((_, i) => i !== idx)})}><X size={10} /></button>
+              </span>
+            ))}
+          </div>
+          <Input
+            placeholder="e.g. Red, Navy Blue, Beige, Ivory"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = (e.target as HTMLInputElement).value.trim();
+                if (val && !form.colors.includes(val)) {
+                  setForm({...form, colors: [...form.colors, val]});
+                  (e.target as HTMLInputElement).value = '';
+                }
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div className="flex gap-2">

@@ -10,7 +10,7 @@ interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number) => void;
+  addItem: (product: Product, quantity?: number, size?: string, color?: string) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -103,15 +103,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
+  const addItem = useCallback((product: Product, quantity = 1, size?: string, color?: string) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find(
+        (item) => item.product.id === product.id && item.size === size && item.color === color
+      );
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item.product.id === product.id && item.size === size && item.color === color
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product, quantity, size, color }];
     });
   }, []);
 

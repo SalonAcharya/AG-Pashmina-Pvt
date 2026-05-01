@@ -24,6 +24,8 @@ const ProductDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string | undefined>();
+  const [selectedColor, setSelectedColor] = useState<string | undefined>();
 
   useEffect(() => {
     // Load recently viewed on mount
@@ -280,6 +282,56 @@ const ProductDetail = () => {
                 </div>
               </div>
 
+              {/* Size selector */}
+              {product.sizes?.length > 0 && (
+                <div className="mb-6">
+                  <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-3 font-bold">
+                    Size <span className="text-accent">{selectedSize ? `— ${selectedSize}` : ""}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {product.sizes.map((s: string) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setSelectedSize(s === selectedSize ? undefined : s)}
+                        className={`px-4 py-2 border rounded-md font-body text-xs uppercase tracking-widest font-bold transition-all duration-200 ${
+                          selectedSize === s
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-border text-muted-foreground hover:border-accent/50"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Color selector */}
+              {product.colors?.length > 0 && (
+                <div className="mb-8">
+                  <p className="font-body text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-3 font-bold">
+                    Color <span className="text-accent">{selectedColor ? `— ${selectedColor}` : ""}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {product.colors.map((c: string) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setSelectedColor(c === selectedColor ? undefined : c)}
+                        className={`px-4 py-2 border rounded-md font-body text-xs uppercase tracking-widest font-bold transition-all duration-200 ${
+                          selectedColor === c
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-border text-muted-foreground hover:border-accent/50"
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Quantity & Add */}
               <div className="flex flex-col gap-4 mb-12">
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -295,7 +347,7 @@ const ProductDetail = () => {
                         navigate(`/login?redirect=/product/${id}`);
                         return;
                       }
-                      addItem(product, quantity);
+                      addItem(product, quantity, selectedSize, selectedColor);
                       toast.success("Added to cart");
                     }}
                     disabled={product.stock_quantity === 0}
