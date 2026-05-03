@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!-- <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.agpashmina.com.np/</loc>
@@ -30,4 +30,46 @@
     <priority>0.7</priority>
     <changefreq>weekly</changefreq>
   </url>
+</urlset> -->
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://www.agpashmina.com.np/</loc>
+    <lastmod>2026-05-03</lastmod>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://www.agpashmina.com.np/shop</loc>
+    <lastmod>2026-05-03</lastmod>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://www.agpashmina.com.np/about</loc>
+    <lastmod>2026-05-01</lastmod>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.agpashmina.com.np/education</loc>
+    <lastmod>2026-05-01</lastmod>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.agpashmina.com.np/contact</loc>
+    <lastmod>2026-05-01</lastmod>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.agpashmina.com.np/blog</loc>
+    <lastmod>2026-05-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>
