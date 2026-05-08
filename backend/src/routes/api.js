@@ -85,7 +85,7 @@ router.get(
     const token = jwt.sign(
       { id: user.id, role_id: user.role_id },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" },
+      { expiresIn: "7d" },
     );
 
     // We check if password_hash is null to determine if it's a social-only account

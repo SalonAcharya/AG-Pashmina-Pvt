@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { API_BASE_URL } from "@/lib/api";
+import { apiClient } from "@/lib/api-client";
 
 const ChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -30,15 +31,10 @@ const ChangePassword = () => {
     }
 
     setIsLoading(true);
-    const token = localStorage.getItem("token");
-
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+      const res = await apiClient(`/api/auth/change-password`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();

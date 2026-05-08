@@ -34,6 +34,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(JSON.parse(savedUser));
       setToken(savedToken);
     }
+
+    // Listen for global 401 unauthorized errors
+    const handleUnauthorized = () => {
+      console.log("Global 401 handler triggered - logging out");
+      logout();
+      // Optional: you could add a toast here, but logout redirects to /login 
+      // where we can show a message or just rely on the user seeing the login screen.
+    };
+
+    window.addEventListener("ag_unauthorized_access", handleUnauthorized);
+    return () => window.removeEventListener("ag_unauthorized_access", handleUnauthorized);
   }, []);
 
   const login = (userData: User, token: string, redirectTo?: string) => {

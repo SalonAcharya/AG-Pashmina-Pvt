@@ -13,6 +13,7 @@ import {
 import { CategoryForm, ProductForm, BlogForm } from "@/components/AdminForms";
 import DeleteConfirm from "@/components/DeleteConfirm";
 import { API_BASE_URL } from "@/lib/api";
+import { apiClient, apiJson } from "@/lib/api-client";
 
 type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 
@@ -128,14 +129,13 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
       const [o, c, p, m, b, s] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/orders?status=${selectedStatus}`, { headers }).then((r) => safeJson(r, [])),
-        fetch(`${API_BASE_URL}/api/categories`).then((r) => safeJson(r, [])),
-        fetch(`${API_BASE_URL}/api/products`).then((r) => safeJson(r, [])),
-        fetch(`${API_BASE_URL}/api/contact-messages`, { headers }).then((r) => safeJson(r, [])),
-        fetch(`${API_BASE_URL}/api/blog`).then((r) => safeJson(r, [])),
-        fetch(`${API_BASE_URL}/api/settings`).then((r) => safeJson(r, {})),
+        apiJson(`/api/orders?status=${selectedStatus}`, {}, []),
+        apiJson(`/api/categories`, {}, []),
+        apiJson(`/api/products`, {}, []),
+        apiJson(`/api/contact-messages`, {}, []),
+        apiJson(`/api/blog`, {}, []),
+        apiJson(`/api/settings`, {}, {}),
       ]);
       setData({
         orders:     Array.isArray(o) ? o : [],
@@ -222,9 +222,8 @@ const AdminDashboard = () => {
     try {
       const endpoint =
         type === "message" ? "contact-messages" : type === "blog" ? "blog" : type === "category" ? "categories" : type + "s";
-      const res = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
+      const res = await apiClient(`/api/${endpoint}/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         fetchData();
@@ -251,9 +250,9 @@ const AdminDashboard = () => {
       if (status) payload.status = status;
       if (paymentStatus) payload.payment_status = paymentStatus;
 
-      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/status`, {
+      const res = await apiClient(`/api/orders/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (res.ok) {
@@ -278,9 +277,8 @@ const AdminDashboard = () => {
       if (qrFile) {
         const formData = new FormData();
         formData.append("images", qrFile);
-        const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
+        const uploadRes = await apiClient(`/api/upload`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
         
@@ -294,9 +292,9 @@ const AdminDashboard = () => {
       }
       
       if (finalUrl) {
-        const res = await fetch(`${API_BASE_URL}/api/settings`, {
+        const res = await apiClient(`/api/settings`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ payment_qr: finalUrl }),
         });
         
@@ -331,9 +329,8 @@ const AdminDashboard = () => {
       // If it's messages, we also tell the backend to mark all as read
       if (value === "messages") {
         try {
-          await fetch(`${API_BASE_URL}/api/contact-messages/read-all`, {
+          await apiClient(`/api/contact-messages/read-all`, {
             method: "PATCH",
-            headers: { Authorization: `Bearer ${token}` },
           });
           // Note: we don't fetchData() here to avoid resetting the counts instantly
           // which might be jarring. We'll refresh after we actually enter the tab.

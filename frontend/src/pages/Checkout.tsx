@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 import { API_BASE_URL } from "@/lib/api";
 import { compressImage } from "@/lib/imageUtils";
+import { apiClient } from "@/lib/api-client";
 
 const Checkout = () => {
   const { items, clearCart } = useCart();
@@ -72,9 +73,8 @@ const Checkout = () => {
         const compressed = await compressImage(paymentProof, "proof");
         const formData = new FormData();
         formData.append("images", compressed);
-        const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
+        const uploadRes = await apiClient(`/api/upload`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
         if (!uploadRes.ok) throw new Error("Upload failed");
@@ -100,9 +100,9 @@ const Checkout = () => {
         }))
       };
 
-      const outRes = await fetch(`${API_BASE_URL}/api/orders`, {
+      const outRes = await apiClient(`/api/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload)
       });
 

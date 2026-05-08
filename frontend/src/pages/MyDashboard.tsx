@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { API_BASE_URL } from "@/lib/api";
+import { apiClient } from "@/lib/api-client";
 
 type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 type PaymentStatus = "unpaid" | "pending_verification" | "paid";
@@ -114,9 +115,7 @@ const MyDashboard = () => {
   const fetchOrders = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/orders?mine=true`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiClient(`/api/orders?mine=true`);
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : []);

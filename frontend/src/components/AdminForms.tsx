@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, X } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
 import { compressImage, formatBytes } from "@/lib/imageUtils";
+import { apiClient } from "@/lib/api-client";
 
 export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, editData?: any, onCancel?: () => void }) => {
   const [name, setName] = useState(editData?.name || "");
@@ -23,9 +24,8 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
       toast.info(`Uploading image (${formatBytes(compressed.size)})…`, { duration: 2000 });
       const formData = new FormData();
       formData.append("images", compressed);
-      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+      const res = await apiClient(`/api/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
       if (!res.ok) throw new Error(await res.text());
@@ -40,14 +40,11 @@ export const CategoryForm = ({ onAdd, editData, onCancel }: { onAdd: () => void,
     const finalImageUrl = await uploadImage();
     if (finalImageUrl === null && imageFile) return;
 
-    const token = localStorage.getItem("token");
     const method = editData ? "PUT" : "POST";
-    const url = editData ? `${API_BASE_URL}/api/categories/${editData.id}` : `${API_BASE_URL}/api/categories`;
-    
     try {
-      const res = await fetch(url, {
+      const res = await apiClient(editData ? `/api/categories/${editData.id}` : `/api/categories`, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, slug, image: finalImageUrl }),
       });
       if (res.ok) {
@@ -105,9 +102,8 @@ export const BlogForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, edi
       toast.info(`Uploading image (${formatBytes(compressed.size)})…`, { duration: 2000 });
       const formData = new FormData();
       formData.append("images", compressed);
-      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+      const res = await apiClient(`/api/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
       if (!res.ok) throw new Error(await res.text());
@@ -115,14 +111,11 @@ export const BlogForm = ({ onAdd, editData, onCancel }: { onAdd: () => void, edi
       finalImageUrl = data.urls[0];
     }
 
-    const token = localStorage.getItem("token");
     const method = editData ? "PUT" : "POST";
-    const url = editData ? `${API_BASE_URL}/api/blog/${editData.id}` : `${API_BASE_URL}/api/blog`;
-    
     try {
-      const res = await fetch(url, {
+      const res = await apiClient(editData ? `/api/blog/${editData.id}` : `/api/blog`, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, featured_image: finalImageUrl }),
       });
       if (res.ok) {
@@ -211,10 +204,8 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
       toast.info(`Uploading ${compressed.length} image(s) (${totalKB} KB total)…`, { duration: 2500 });
       const formData = new FormData();
       compressed.forEach(file => formData.append("images", file));
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+      const res = await apiClient(`/api/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (!res.ok) throw new Error("Upload failed");
@@ -256,14 +247,11 @@ export const ProductForm = ({ categories, onAdd, editData, onCancel }: { categor
       sale_price: parseFloat(form.sale_price)
     };
     
-    const token = localStorage.getItem("token");
     const method = editData ? "PUT" : "POST";
-    const url = editData ? `${API_BASE_URL}/api/products/${editData.id}` : `${API_BASE_URL}/api/products`;
-
     try {
-      const res = await fetch(url, {
+      const res = await apiClient(editData ? `/api/products/${editData.id}` : `/api/products`, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalForm),
       });
       if (res.ok) {

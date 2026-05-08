@@ -63,7 +63,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, role_id: user.role_id },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" },
+      { expiresIn: "7d" },
     );
     res.json({
       token,
@@ -255,7 +255,12 @@ const changePassword = async (req, res) => {
     const user = userRes.rows[0];
 
     if (!user.password_hash) {
-      return res.status(400).json({ message: "Your account uses Google sign-in and does not have a password to change." });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Your account uses Google sign-in and does not have a password to change.",
+        });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
