@@ -22,6 +22,30 @@ const formatProduct = (p) => {
   };
 };
 
+const generateUniqueSlug = async (
+  baseSlug,
+  currentId = null,
+  table = "products",
+) => {
+  let slug = baseSlug;
+  let counter = 1;
+  while (true) {
+    let query = `SELECT id FROM ${table} WHERE slug = $1`;
+    let params = [slug];
+    if (currentId) {
+      query += " AND id != $2";
+      params.push(currentId);
+    }
+    const existing = await db.query(query, params);
+    if (existing.rows.length === 0) {
+      break;
+    }
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  return slug;
+};
+
 // Category Controllers
 const getCategories = async (req, res) => {
   try {
@@ -33,8 +57,13 @@ const getCategories = async (req, res) => {
 };
 
 const createCategory = async (req, res) => {
-  const { name, description, slug, image } = req.body;
+  const { name, description, slug: initialSlug, image } = req.body;
   try {
+    const slug = await generateUniqueSlug(
+      initialSlug || name.toLowerCase().replace(/ /g, "-"),
+      null,
+      "categories",
+    );
     const result = await db.query(
       "INSERT INTO categories (name, description, slug, image) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, description, slug, image],
@@ -47,8 +76,13 @@ const createCategory = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name, description, slug, image } = req.body;
+  const { name, description, slug: initialSlug, image } = req.body;
   try {
+    const slug = await generateUniqueSlug(
+      initialSlug || name.toLowerCase().replace(/ /g, "-"),
+      id,
+      "categories",
+    );
     const result = await db.query(
       "UPDATE categories SET name=$1, description=$2, slug=$3, image=$4 WHERE id=$5 RETURNING *",
       [name, description, slug, image, id],
@@ -101,7 +135,7 @@ const getProducts = async (req, res) => {
 const createProduct = async (req, res) => {
   const {
     name,
-    slug,
+    slug: initialSlug,
     description,
     base_price,
     discount_type,
@@ -116,6 +150,9 @@ const createProduct = async (req, res) => {
     low_stock_threshold,
   } = req.body;
   try {
+    const slug = await generateUniqueSlug(
+      initialSlug || name.toLowerCase().replace(/ /g, "-"),
+    );
     const result = await db.query(
       "INSERT INTO products (name, slug, description, base_price, discount_type, discount_value, sale_price, category_id, images, sizes, colors, weight, stock_quantity, low_stock_threshold) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *",
       [
@@ -145,7 +182,7 @@ const updateProduct = async (req, res) => {
   const { id } = req.params;
   const {
     name,
-    slug,
+    slug: initialSlug,
     description,
     base_price,
     discount_type,
@@ -161,6 +198,10 @@ const updateProduct = async (req, res) => {
     is_active,
   } = req.body;
   try {
+    const slug = await generateUniqueSlug(
+      initialSlug || name.toLowerCase().replace(/ /g, "-"),
+      id,
+    );
     const result = await db.query(
       "UPDATE products SET name=$1, slug=$2, description=$3, base_price=$4, discount_type=$5, discount_value=$6, sale_price=$7, category_id=$8, images=$9, sizes=$10, colors=$11, weight=$12, stock_quantity=$13, low_stock_threshold=$14, is_active=$15 WHERE id=$16 RETURNING *",
       [
